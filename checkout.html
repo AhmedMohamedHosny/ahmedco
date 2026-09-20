@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="تأكيد الشحن والفاتورة - براند أحمدكو للملابس والأزياء العصرية">
+  <title>تأكيد الطلب والشحن | براند أحمدكو - Ahmedco Fashion</title>
+  
+  <!-- أيقونة التبويب وشعار متجر أحمدكو (Favicon) -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  
+  <!-- الخط الرسمي والأيقونات -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* --------------------------------------------------------------------------
+       تنسيقات صفحة إنهاء الطلب المخصصة لبراند الأزياء أحمدكو
+       -------------------------------------------------------------------------- */
+    .checkout-main-canvas {
+      padding: 30px 0 80px;
+      min-height: 80vh;
+    }
+
+    /* شريط مؤشر الخطوات العصري */
+    .checkout-flow-stepper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 35px;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .flow-step.done {
+      color: #10b981;
+    }
+
+    .flow-step.active {
+      color: var(--text-main);
+      font-weight: 900;
+    }
+
+    .flow-step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1.5px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.88rem;
+    }
+
+    .flow-step.done .flow-step-number {
+      background: #ecfdf5;
+      color: #10b981;
+      border-color: #10b981;
+    }
+
+    .flow-step.active .flow-step-number {
+      background: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      border-color: var(--fashion-primary, #0f172a);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+    }
+
+    body.dark-mode .flow-step.active .flow-step-number {
+      background: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+
+    .flow-step-connector {
+      width: 50px;
+      height: 2px;
+      background: var(--border-color);
+    }
+
+    /* تقسيم الصفحة */
+    .checkout-content-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 28px;
+      align-items: flex-start;
+    }
+
+    /* بطاقة النموذج */
+    .checkout-card-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+    }
+
+    .checkout-card-panel h2 {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .checkout-card-panel h2 i {
+      color: var(--fashion-accent, #2563eb);
+      font-size: 1.15rem;
+    }
+
+    .input-field-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 18px;
+    }
+
+    .input-field-block label {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .input-field-block label span.star {
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .input-field-block input,
+    .input-field-block select,
+    .input-field-block textarea {
+      padding: 12px 16px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      background: var(--bg-surface);
+      outline: none;
+      transition: var(--transition-fast);
+    }
+
+    .input-field-block input:focus,
+    .input-field-block select:focus,
+    .input-field-block textarea:focus {
+      border-color: var(--fashion-accent, #2563eb);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .input-note-hint {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .duo-inputs-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* خيارات الدفع */
+    .payment-tab-option {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      transition: var(--transition-fast);
+      background: var(--bg-surface);
+    }
+
+    .payment-tab-option.active {
+      border-color: var(--fashion-primary, #0f172a);
+      background: rgba(15, 23, 42, 0.04);
+      color: var(--fashion-primary, #0f172a);
+      box-shadow: 0 0 0 1px var(--fashion-primary, #0f172a);
+    }
+
+    body.dark-mode .payment-tab-option.active {
+      border-color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      color: #38bdf8;
+      box-shadow: 0 0 0 1px #38bdf8;
+    }
+
+    .cash-option-box {
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .cash-option-box i {
+      font-size: 2rem;
+      color: #10b981;
+    }
+
+    .cash-option-texts strong {
+      display: block;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .cash-option-texts small {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* زر تأكيد الطلب النهائي */
+    .btn-confirm-order-final {
+      width: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border: none;
+      padding: 16px;
+      border-radius: var(--radius-pill);
+      font-size: 1.1rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+      transition: var(--transition-fast);
+      margin-top: 18px;
+    }
+
+    .btn-confirm-order-final:hover {
+      background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(37, 99, 235, 0.3);
+    }
+
+    body.dark-mode .btn-confirm-order-final {
+      background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+      color: #0f172a;
+    }
+
+    /* عمود الفاتورة الجانبي */
+    .checkout-summary-sidebar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      position: sticky;
+      top: 90px;
+    }
+
+    .checkout-summary-sidebar h3 {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .checkout-mini-items-list {
+      max-height: 280px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      padding-left: 4px;
+    }
+
+    .mini-cart-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .mini-cart-thumb {
+      width: 50px;
+      height: 60px;
+      border-radius: var(--radius-xs);
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .mini-cart-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mini-cart-desc {
+      flex: 1;
+    }
+
+    .mini-cart-desc h5 {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.35;
+      margin-bottom: 4px;
+    }
+
+    .mini-cart-attributes {
+      display: flex;
+      gap: 8px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--fashion-accent, #2563eb);
+      margin-bottom: 2px;
+    }
+
+    .mini-cart-desc span.qty-price {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .mini-cart-total {
+      font-size: 0.92rem;
+      font-weight: 900;
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .summary-calc-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .summary-calc-row strong {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    .summary-calc-divider {
+      border: none;
+      border-top: 1px dashed var(--border-color);
+      margin: 16px 0;
+    }
+
+    .summary-final-due {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .summary-final-due span {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .summary-final-due strong {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .inspection-badge-note {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .inspection-badge-note i {
+      font-size: 1.4rem;
+      color: #10b981;
+    }
+
+    @media (max-width: 992px) {
+      .checkout-content-grid {
+        grid-template-columns: 1fr;
+      }
+      .checkout-summary-sidebar {
+        position: static;
+      }
+      .duo-inputs-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="fashion-theme">
+
+  <!-- 1. شريط العروض العلوي -->
+  <div class="fashion-ticker">
+    <div class="ticker-track">
+      <span>🔥 كولكشن جديد من أحمدكو: خامات قطن 100% وموديلات أوفر سايز راقية</span>
+      <span>•</span>
+      <span>🚚 حق المعاينة وقياس الملابس أمام المندوب متاح بالكامل قبل الدفع</span>
+      <span>•</span>
+      <span>⚡ شحن لجميع محافظات مصر وتغليف فاخر يليق بطلبك</span>
+      <span>•</span>
+      <span>💵 الدفع عند الاستلام كاش بكل ثقة وأمان</span>
+    </div>
+  </div>
+
+  <!-- 2. رأس المتجر الموحد -->
+  <header class="fashion-header">
+    <div class="container header-inner">
+      <!-- شعار براند أحمدكو -->
+      <a href="index.html" class="brand-fashion">
+        <img src="logo.png" alt="أحمدكو Ahmedco Store" class="main-store-logo">
+      </a>
+
+      <div class="dream-header-tools">
+        <div class="dark-mode-toggle-wrap" title="تبديل الوضع الليلي / الفاتح">
+          <label class="switch-ui" for="dark-mode-checkbox">
+            <input type="checkbox" id="dark-mode-checkbox">
+            <span class="slider-switch round">
+              <i class="fa-solid fa-sun icon-sun"></i>
+              <i class="fa-solid fa-moon icon-moon"></i>
+            </span>
+          </label>
+        </div>
+
+        <div class="header-v-divider"></div>
+
+        <a href="cart.html" class="dream-brand" style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-bag-shopping"></i> العودة للحقيبة
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. مساحة تأكيد الشحن والفاتورة -->
+  <main class="checkout-main-canvas">
+    <div class="container">
+      
+      <!-- مؤشر مسار الخطوات -->
+      <div class="checkout-flow-stepper">
+        <div class="flow-step done">
+          <div class="flow-step-number"><i class="fa-solid fa-check"></i></div>
+          <span>حقيبة التسوق</span>
+        </div>
+        <div class="flow-step-connector"></div>
+        <div class="flow-step active">
+          <div class="flow-step-number">2</div>
+          <span>بيانات الشحن والمقاسات</span>
+        </div>
+        <div class="flow-step-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-number">3</div>
+          <span>القياس والاستلام</span>
+        </div>
+      </div>
+
+      <div class="checkout-content-grid">
+        
+        <!-- استمارة كتابة العنوان والبيانات -->
+        <div class="checkout-forms-column">
+          <form id="checkout-dispatch-form">
+            
+            <!-- الصندوق الأول: بيانات المشتري -->
+            <section class="checkout-card-panel">
+              <h2><i class="fa-solid fa-user-check"></i> بيانات المستلم وأرقام التواصل</h2>
+
+              <div class="input-field-block">
+                <label for="order-fullname">الاسم بالكامل <span class="star">*</span></label>
+                <input type="text" id="order-fullname" placeholder="أدخل اسمك الثلاثي" required>
+                <span class="input-note-hint">الاسم المعتمد لتسليم شحنة الملابس لك شخصياً.</span>
+              </div>
+
+              <div class="duo-inputs-row">
+                <div class="input-field-block">
+                  <label for="order-phone1">رقم الهاتف الأساسي (الواتساب) <span class="star">*</span></label>
+                  <input type="tel" id="order-phone1" placeholder="01012345678" maxlength="11" pattern="^01[0125][0-9]{8}$" required>
+                  <span class="input-note-hint">سيتواصل معك مندوب التوصيل عبر هذا الرقم لتأكيد الموعد.</span>
+                </div>
+
+                <div class="input-field-block">
+                  <label for="order-phone2">رقم هاتف بديل <span class="star">*</span></label>
+                  <input type="tel" id="order-phone2" placeholder="01198765432" maxlength="11" required>
+                  <span class="input-note-hint">رقم إضافي لضمان سرعة الوصول والتسليم.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- الصندوق الثاني: العنوان وحساب الشحن -->
+            <section class="checkout-card-panel">
+              <h2><i class="fa-solid fa-location-dot"></i> عنوان توصيل الملابس</h2>
+
+              <div class="duo-inputs-row">
+                <div class="input-field-block">
+                  <label for="order-gov">المحافظة <span class="star">*</span></label>
+                  <select id="order-gov" required>
+                    <option value="">اختر المحافظة لحساب الشحن...</option>
+                    <option value="القاهرة" data-shipping="35">القاهرة (35 ج.م)</option>
+                    <option value="الجيزة" data-shipping="35">الجيزة (35 ج.م)</option>
+                    <option value="الإسكندرية" data-shipping="45">الإسكندرية (45 ج.م)</option>
+                    <option value="القليوبية" data-shipping="40">القليوبية (40 ج.م)</option>
+                    <option value="الشرقية" data-shipping="45">الشرقية (45 ج.م)</option>
+                    <option value="الدقهلية" data-shipping="45">الدقهلية (45 ج.م)</option>
+                    <option value="الغربية" data-shipping="45">الغربية (45 ج.م)</option>
+                    <option value="المنوفية" data-shipping="45">المنوفية (45 ج.م)</option>
+                    <option value="البحيرة" data-shipping="45">البحيرة (45 ج.م)</option>
+                    <option value="كفر الشيخ" data-shipping="45">كفر الشيخ (45 ج.م)</option>
+                    <option value="دمياط" data-shipping="45">دمياط (45 ج.م)</option>
+                    <option value="بورسعيد" data-shipping="50">بورسعيد (50 ج.م)</option>
+                    <option value="الإسماعيلية" data-shipping="50">الإسماعيلية (50 ج.م)</option>
+                    <option value="السويس" data-shipping="50">السويس (50 ج.م)</option>
+                    <option value="الفيوم" data-shipping="50">الفيوم (50 ج.م)</option>
+                    <option value="بني سويف" data-shipping="50">بني سويف (50 ج.م)</option>
+                    <option value="المنيا" data-shipping="55">المنيا (55 ج.م)</option>
+                    <option value="أسيوط" data-shipping="55">أسيوط (55 ج.م)</option>
+                    <option value="سوهاج" data-shipping="55">سوهاج (55 ج.م)</option>
+                    <option value="قنا" data-shipping="60">قنا (60 ج.م)</option>
+                    <option value="الأقصر" data-shipping="60">الأقصر (60 ج.م)</option>
+                    <option value="أسوان" data-shipping="60">أسوان (60 ج.م)</option>
+                    <option value="مطروح" data-shipping="65">مطروح (65 ج.م)</option>
+                    <option value="البحر الأحمر" data-shipping="65">البحر الأحمر (65 ج.م)</option>
+                  </select>
+                </div>
+
+                <div class="input-field-block">
+                  <label for="order-city">المدينة / الحي / المنطقة <span class="star">*</span></label>
+                  <input type="text" id="order-city" placeholder="مثال: مدينة نصر / المعادي / سموحة" required>
+                </div>
+              </div>
+
+              <div class="input-field-block">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label for="order-full-address" style="margin:0;">العنوان بالتفصيل <span class="star">*</span></label>
+                  <button type="button" id="btn-geo-location" style="background: var(--bg-elevated); border: 1px dashed var(--fashion-accent, #2563eb); color: var(--fashion-accent, #2563eb); padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
+                    <i class="fa-solid fa-location-crosshairs"></i> تثبيت موقعي بالخريطة
+                  </button>
+                </div>
+                <input type="text" id="order-full-address" placeholder="اسم الشارع، رقم العمارة، الدور، الشقة، وأقرب علامة مميزة..." required>
+                <input type="hidden" id="geo-map-link">
+                <span id="geo-status-text" style="font-size: 0.75rem; color: #10b981; font-weight: 700; display: none; margin-top: 4px;"></span>
+              </div>
+
+              <div class="input-field-block">
+                <label for="order-notes">ملاحظات لمندوب التوصيل (اختياري)</label>
+                <input type="text" id="order-notes" placeholder="مثال: يرجى التوصيل بعد الساعة 4 عصراً...">
+              </div>
+            </section>
+
+            <!-- الصندوق الثالث: طريقة الدفع -->
+            <section class="checkout-card-panel">
+              <h2><i class="fa-solid fa-hand-holding-dollar"></i> طريقة السداد المفضلة</h2>
+
+              <div style="display:flex; gap:12px; margin-bottom:16px;">
+                <label class="payment-tab-option active" id="tab-cash-label">
+                  <input type="radio" name="payment-method" value="cash" checked style="display:none;">
+                  <i class="fa-solid fa-money-bill-wave"></i>
+                  <span>كاش عند الاستلام</span>
+                </label>
+                <label class="payment-tab-option" id="tab-vodafone-label">
+                  <input type="radio" name="payment-method" value="vodafone" style="display:none;">
+                  <i class="fa-solid fa-mobile-screen-button"></i>
+                  <span>فودافون كاش / إنستاباي</span>
+                </label>
+              </div>
+
+              <div class="cash-option-box" id="cash-method-details">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <div class="cash-option-texts">
+                  <strong>الدفع نقداً عند الاستلام (مع حق القياس)</strong>
+                  <small>قيس وافحص جودة وتقفيل الملابس بنفسك وتأكد من المقاس قبل دفع أي مبلغ للمندوب.</small>
+                </div>
+              </div>
+
+              <div class="cash-option-box" id="vodafone-method-details" style="display:none;">
+                <i class="fa-solid fa-mobile-screen-button" style="color:var(--fashion-accent, #2563eb);"></i>
+                <div class="cash-option-texts">
+                  <strong>الدفع عبر المحافظ الإلكترونية أو InstaPay</strong>
+                  <small>سيتواصل معك فريق خدمة عملاء أحمدكو عبر الواتساب برقم التحويل المباشر بعد تأكيد طلبك.</small>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-confirm-order-final">
+                <span>إرسال وتأكيد الطلب الآن</span>
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+            </section>
+
+          </form>
+        </div>
+
+        <!-- عمود ملخص الفاتورة والملابس المطلوبة -->
+        <aside class="checkout-summary-sidebar">
+          <h3>حقيبة الطلب (<span id="cart-items-qty">0</span> قطع)</h3>
+
+          <div class="checkout-mini-items-list" id="mini-order-items">
+            <!-- يتم حقن قطع الملابس المختارة هنا -->
+          </div>
+
+          <div class="summary-calc-row">
+            <span>إجمالي الملابس:</span>
+            <strong id="mini-subtotal-val">0.00 ج.م</strong>
+          </div>
+
+          <div class="summary-calc-row">
+            <span>مصاريف الشحن:</span>
+            <strong id="mini-shipping-val">حدد المحافظة</strong>
+          </div>
+
+          <hr class="summary-calc-divider">
+
+          <div class="summary-final-due">
+            <span>المبلغ الإجمالي المستحق:</span>
+            <strong id="mini-grand-total">0.00 ج.م</strong>
+          </div>
+
+          <div class="inspection-badge-note">
+            <i class="fa-solid fa-shirt"></i>
+            <span>ضمان المعاينة الفورية: يحق لك فتح كيس الشحن وقياس الموديل والتأكد من خامات القطن 100% قبل الدفع.</span>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- 4. تذييل المتجر الفخم (Footer) -->
+  <footer class="fashion-footer">
+    <div class="container">
+      <div class="footer-simple-center">
+        <div class="footer-simple-card">
+          <img src="logo.png" alt="أحمدكو">
+        </div>
+        <div class="footer-simple-brand-text">
+          <h3>براند أحمدكو للأزياء والملابس</h3>
+          <p>أقمشة قطنية بريميوم 100% • خياطة وتقفيل متقن • حق المعاينة وقياس الملابس قبل الدفع</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom-copyright">
+        <div class="container copyright-flex-dream">
+          <div class="footer-copy-right">
+            <span>© 2026 براند أحمدكو (Ahmedco Fashion). جميع الحقوق محفوظة.</span>
+          </div>
+
+          <div class="footer-social-mid">
+            <a href="#" target="_blank" title="تيك توك"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" target="_blank" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" target="_blank" title="انستجرام"><i class="fa-brands fa-instagram"></i></a>
+          </div>
+
+          <div class="footer-dev-left" dir="ltr">
+            <span class="dev-label-eng">Designed &amp; Developed by</span>
+            <a href="https://wa.me/201101579399" target="_blank" class="dev-eng-highlight" title="واتساب المطور">
+              ENG : Ahmed Mohamed
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 5. زر المحادثة العائم المتناوب -->
+  <div class="alternating-chat-widget" id="alternating-chat-btn" title="تواصل معنا">
+    <a href="https://wa.me/201101579399" target="_blank" class="chat-circle-link whatsapp-mode" id="chat-link">
+      <i class="fa-brands fa-whatsapp chat-icon" id="chat-icon"></i>
+    </a>
+  </div>
+
+  <!-- شاشة إغلاق المتجر والصيانة -->
+  <div class="store-closed-screen" id="store-closed-modal" style="display: none;">
+    <div class="closed-glass-box">
+      <img src="logo.png" alt="أحمدكو" style="height: 60px; margin: 0 auto; display:block;">
+      <h2>تجهيز الكولكشن الجديد وجرد المخزون</h2>
+      <p>نقوم حالياً بجرد القطع وتحديث المقاسات والألوان المتوفرة.<br>نعود إليكم في أبهى حلة خلال وقت قصير بإذن الله.</p>
+      <a href="https://wa.me/201101579399" target="_blank" class="btn-claim-offer-3d" style="margin: 0 auto; max-width: 280px; text-decoration:none; display:inline-flex;">
+        <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> تواصل معنا عبر واتساب
+      </a>
+    </div>
+  </div>
+
+  <!-- المحرك البرمجي لحساب شحن ملابس أحمدكو وتوليد الفاتورة والربط مع Firebase -->
+  <script>
+    'use strict';
+
+    // 1. إعدادات مشروع فايربيز الخاص بمتجر أحمدكو (ahmedco-brand)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbZhiHbPf97rFULB2mg_o4L74e9oateto",
+      authDomain: "ahmedco-brand.firebaseapp.com",
+      projectId: "ahmedco-brand",
+      storageBucket: "ahmedco-brand.firebasestorage.app",
+      messagingSenderId: "116297730401",
+      appId: "1:116297730401:web:d73eed3234c8da8c821d20",
+      measurementId: "G-EYFCWNCHF3"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // مزامنة حالة إغلاق المتجر
+    function applyStoreClosedState(isClosed) {
+      const modal = document.getElementById('store-closed-modal');
+      if (!modal) return;
+      if (isClosed) {
+        modal.style.setProperty('display', 'flex', 'important');
+        document.body.style.overflow = 'hidden';
+      } else {
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+    applyStoreClosedState(localStorage.getItem('ahmedco_store_closed') === 'true');
+    db.collection('settings').doc('status').onSnapshot(doc => {
+      if (doc.exists) {
+        const closed = doc.data().isClosed === true;
+        localStorage.setItem('ahmedco_store_closed', closed ? 'true' : 'false');
+        applyStoreClosedState(closed);
+      }
+    }, err => {});
+
+    // جلب عناصر حقيبة الملابس
+    const cart = JSON.parse(localStorage.getItem('ahmedco_cart')) || [];  
+    if (cart.length === 0) {
+      alert('حقيبة التسوق فارغة! اختر ملابسك أولاً.');
+      window.location.href = 'index.html';
+    }
+
+    const itemsContainer = document.getElementById('mini-order-items');
+    const qtyBadge = document.getElementById('cart-items-qty');
+    const subtotalEl = document.getElementById('mini-subtotal-val');
+    const shippingEl = document.getElementById('mini-shipping-val');
+    const grandTotalEl = document.getElementById('mini-grand-total');
+    const govSelect = document.getElementById('order-gov');
+    const dispatchForm = document.getElementById('checkout-dispatch-form');
+
+    const totalQuantity = cart.reduce((acc, i) => acc + (Number(i.quantity) || 1), 0);
+    const subtotalPrice = cart.reduce((acc, i) => acc + (Number(i.price) * (Number(i.quantity) || 1)), 0);
+
+    qtyBadge.textContent = totalQuantity;
+    subtotalEl.textContent = `${subtotalPrice.toFixed(2)} ج.م`;
+
+    // عرض عناصر الملابس المصغرة مع المقاس واللون
+    itemsContainer.innerHTML = cart.map(item => `
+      <div class="mini-cart-item">
+        <div class="mini-cart-thumb">
+          <img src="${item.image || 'logo.png'}" alt="${item.name}">
+        </div>
+        <div class="mini-cart-desc">
+          <h5>${item.name}</h5>
+          <div class="mini-cart-attributes">
+            ${item.size ? `<span>المقاس: ${item.size}</span>` : ''}
+            ${item.color ? `<span>• اللون: ${item.color}</span>` : ''}
+          </div>
+          <span class="qty-price">الكمية: (${item.quantity}) × ${Number(item.price).toFixed(2)} ج.م</span>
+        </div>
+        <div class="mini-cart-total">
+          ${(Number(item.price) * Number(item.quantity)).toFixed(2)} ج.م
+        </div>
+      </div>
+    `).join('');
+
+    // تبديل طرق الدفع
+    let selectedPaymentMethod = 'cash';
+    document.getElementById('tab-cash-label')?.addEventListener('click', () => {
+      selectedPaymentMethod = 'cash';
+      document.getElementById('tab-cash-label').classList.add('active');
+      document.getElementById('tab-vodafone-label').classList.remove('active');
+      document.getElementById('cash-method-details').style.display = 'flex';
+      document.getElementById('vodafone-method-details').style.display = 'none';
+    });
+    document.getElementById('tab-vodafone-label')?.addEventListener('click', () => {
+      selectedPaymentMethod = 'vodafone';
+      document.getElementById('tab-vodafone-label').classList.add('active');
+      document.getElementById('tab-cash-label').classList.remove('active');
+      document.getElementById('vodafone-method-details').style.display = 'flex';
+      document.getElementById('cash-method-details').style.display = 'none';
+    });
+
+    // زر التقاط إحداثيات الموقع للمندوب
+    document.getElementById('btn-geo-location')?.addEventListener('click', () => {
+      const statusText = document.getElementById('geo-status-text');
+      const mapInput = document.getElementById('geo-map-link');
+
+      if (!navigator.geolocation) {
+        alert("خاصية تحديد الموقع غير مدعومة في متصفحك.");
+        return;
+      }
+
+      statusText.style.display = 'block';
+      statusText.textContent = "جاري التقاط إحداثيات موقعك عبر الأقمار الصناعية...";
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+          if (mapInput) mapInput.value = mapUrl;
+          statusText.textContent = "✅ تم تثبيت موقعك الجغرافي بنجاح لمساعدة مندوب التوصيل!";
+        },
+        (err) => {
+          statusText.textContent = "تعذر التقاط الموقع تلقائياً. يرجى كتابة تفاصيل العنوان يدوياً.";
+        }
+      );
+    });
+
+    let activeShippingFee = 0;
+    // قراءة وتحديث أسعار الشحن من Firestore
+    (async function syncGovRatesToCheckout() {
+      let customRates = null;
+      try {
+        const doc = await db.collection('settings').doc('shipping').get();
+        if (doc.exists) customRates = doc.data();
+      } catch (e) {}
+
+      if (!customRates || !govSelect) return;
+
+      const govIdMap = {
+        "القاهرة": "cairo", "الجيزة": "giza", "الإسكندرية": "alex", "القليوبية": "qalyubia",
+        "الشرقية": "sharqia", "الدقهلية": "dakahlia", "الغربية": "gharbia", "المنوفية": "monufia",
+        "البحيرة": "beheira", "كفر الشيخ": "kafr_el_sheikh", "دمياط": "damietta", "بورسعيد": "port_said",
+        "الإسماعيلية": "ismailia", "السويس": "suez", "الفيوم": "fayoum", "بني سويف": "beni_suef",
+        "المنيا": "minya", "أسيوط": "assiut", "سوهاج": "sohag", "قنا": "qena", "الأقصر": "luxor",
+        "أسوان": "aswan", "مطروح": "matrouh", "البحر الأحمر": "red_sea"
+      };
+
+      Array.from(govSelect.options).forEach(opt => {
+        const govKey = govIdMap[opt.value];
+        if (govKey && customRates[govKey] !== undefined) {
+          const newFee = customRates[govKey];
+          opt.setAttribute('data-shipping', newFee);
+          opt.textContent = `${opt.value} (${newFee} ج.م)`;
+        }
+      });
+    })();
+
+    function recalculateGrandTotal() {
+      const selectedOption = govSelect.options[govSelect.selectedIndex];
+      const fee = parseFloat(selectedOption.getAttribute('data-shipping')) || 0;
+
+      if (fee > 0) {
+        activeShippingFee = fee;
+        shippingEl.textContent = `${activeShippingFee.toFixed(2)} ج.م`;
+      } else {
+        activeShippingFee = 0;
+        shippingEl.textContent = 'حدد المحافظة';
+      }
+
+      const grandTotal = subtotalPrice + activeShippingFee;
+      grandTotalEl.textContent = `${grandTotal.toFixed(2)} ج.م`;
+    }
+
+    govSelect.addEventListener('change', recalculateGrandTotal);
+
+    // معالجة تأكيد الطلب وحفظه في Firebase وإرساله واتساب
+    dispatchForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullName = document.getElementById('order-fullname').value.trim();
+      const phone1 = document.getElementById('order-phone1').value.trim();
+      const phone2 = document.getElementById('order-phone2').value.trim();
+      const governorate = govSelect.value;
+      const city = document.getElementById('order-city').value.trim();
+      const address = document.getElementById('order-full-address').value.trim();
+      const notes = document.getElementById('order-notes').value.trim();
+      const mapLink = document.getElementById('geo-map-link').value.trim();
+      const paymentMethodText = selectedPaymentMethod === 'vodafone' ? 'فودافون كاش / إنستاباي' : 'كاش عند الاستلام';
+
+      if (!governorate) {
+        alert('يرجى اختيار المحافظة لحساب تكلفة التوصيل.');
+        govSelect.focus();
+        return;
+      }
+
+      // بناء قائمة الملابس المطلوبة بالمقاس واللون
+      const itemsListText = cart.map((item, idx) => 
+        `👕 *${idx + 1}.* ${item.name}%0A   📏 *المقاس:* ${item.size || 'غير محدد'} | 🎨 *اللون:* ${item.color || 'غير محدد'}%0A   الكمية: (${item.quantity} قطع) | السعر: ${(Number(item.price) * Number(item.quantity)).toFixed(2)} ج.م`
+      ).join('%0A');
+
+      const finalAmount = subtotalPrice + activeShippingFee;
+      const orderDate = new Date().toLocaleDateString('ar-EG', { dateStyle: 'full' });
+
+      // صياغة الفاتورة الرسمية الموجهة لواتساب براند أحمدكو
+      const whatsappBill = 
+        `🔥 *طلب ملابس جديد - براند أحمدكو (Ahmedco)*%0A` +
+        `📅 *تاريخ الطلب:* ${orderDate}%0A` +
+        `----------------------------------------%0A` +
+        `👤 *بيانات المستلم:*%0A` +
+        `• *الاسم بالكامل:* ${fullName}%0A` +
+        `• *رقم الهاتف (الواتساب):* ${phone1}%0A` +
+        `• *رقم هاتف بديل:* ${phone2}%0A` +
+        `----------------------------------------%0A` +
+        `📍 *عنوان التوصيل:*%0A` +
+        `• *المحافظة:* ${governorate}%0A` +
+        `• *المدينة / المنطقة:* ${city}%0A` +
+        `• *العنوان بالتفصيل:* ${address}%0A` +
+        (mapLink ? `• *الموقع على الخريطة:* ${mapLink}%0A` : '') +
+        (notes ? `• *ملاحظات التوصيل:* ${notes}%0A` : '') +
+        `----------------------------------------%0A` +
+        `📦 *القطع والمقاسات المطلوبة:*%0A${itemsListText}%0A` +
+        `----------------------------------------%0A` +
+        `💵 *الحساب المالي:*%0A` +
+        `• إجمالي الملابس: ${subtotalPrice.toFixed(2)} ج.م%0A` +
+        `• مصاريف الشحن: ${activeShippingFee.toFixed(2)} ج.م%0A` +
+        `• *المبلغ الإجمالي المستحق:* ${finalAmount.toFixed(2)} ج.م%0A` +
+        `• *طريقة الدفع:* ${paymentMethodText}%0A` +
+        `----------------------------------------%0A` +
+        `🛡️ *ملاحظة البراند:* يحق للمشتري فتح الشحنة وقياس الملابس والتأكد من الجودة أمام المندوب قبل الدفع.`;
+
+      // حفظ الطلب في Firestore لبراند أحمدكو
+      try {
+        await db.collection('orders').add({
+          customerName: fullName,
+          phone: phone1,
+          phone2: phone2,
+          gov: governorate,
+          address: `${city} - ${address}`,
+          paymentMethod: paymentMethodText,
+          items: cart.map(i => `${i.name} [مقاس: ${i.size || 'عادي'} | لون: ${i.color || 'افتراضي'}] (${i.quantity}) × ${Number(i.price).toFixed(2)} ج.م`).join(' | '),
+          itemsDetailed: cart.map(i => ({
+            productId: i.id,
+            name: i.name,
+            size: i.size || '',
+            color: i.color || '',
+            quantity: Number(i.quantity) || 1,
+            price: Number(i.price)
+          })),
+          total: finalAmount,
+          status: 'قيد التجهيز ⏳',
+          createdAt: new Date().toISOString()
+        });
+
+        // خصم المخزون
+        for (const item of cart) {
+          try {
+            const prodRef = db.collection('products').doc(String(item.id));
+            const snap = await prodRef.get();
+            if (snap.exists) {
+              const data = snap.data();
+              const currentStock = Number(data.stock) || 0;
+              const newStock = Math.max(0, currentStock - (Number(item.quantity) || 1));
+              await prodRef.update({
+                stock: newStock,
+                inStock: newStock > 0
+              });
+            }
+          } catch (e) {
+            console.warn('تعذر خصم المخزون:', e.message);
+          }
+        }
+
+        localStorage.removeItem('ahmedco_cart');
+      } catch (err) {
+        console.warn('تعذر حفظ الطلب في فايربيز:', err.message);
+      }
+
+      // توجيه العميل لرقم واتساب متجر أحمدكو
+      const storeWhatsAppNumber = '201101579399';
+      window.open(`https://wa.me/${storeWhatsAppNumber}?text=${whatsappBill}`, '_blank');
+      window.location.href = 'index.html';
+    });
+
+    // مزامنة الدارك مود
+    const darkCheckbox = document.getElementById('dark-mode-checkbox');
+    if (localStorage.getItem('ahmedco_dark_mode') === 'enabled') {
+      document.body.classList.add('dark-mode');
+      if (darkCheckbox) darkCheckbox.checked = true;
+    }
+    darkCheckbox?.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'enabled');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'disabled');
+      }
+    });
+
+    // تناوب زر الشات
+    const chatLink = document.getElementById('chat-link');
+    const chatIcon = document.getElementById('chat-icon');
+    let isWhatsApp = true;
+    setInterval(() => {
+      isWhatsApp = !isWhatsApp;
+      if (!chatIcon || !chatLink) return;
+      chatIcon.classList.add('rotate-anim');
+      setTimeout(() => {
+        if (isWhatsApp) {
+          chatLink.className = 'chat-circle-link whatsapp-mode';
+          chatLink.href = 'https://wa.me/201101579399';
+          chatIcon.className = 'fa-brands fa-whatsapp chat-icon';
+        } else {
+          chatLink.className = 'chat-circle-link messenger-mode';
+          chatLink.href = 'https://m.me/ahmedcostore';
+          chatIcon.className = 'fa-brands fa-facebook-messenger chat-icon';
+        }
+        chatIcon.classList.remove('rotate-anim');
+      }, 250);
+    }, 5000);
+
+    recalculateGrandTotal();
+  </script>
+</body>
+</html>
