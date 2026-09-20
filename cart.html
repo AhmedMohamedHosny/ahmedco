@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="حقيبة التسوق - براند أحمدكو للأزياء والملابس الكاجوال الراقية">
+  <title>حقيبة التسوق | براند أحمدكو - Ahmedco Fashion</title>
+
+  <!-- أيقونة التبويب وشعار متجر أحمدكو (Favicon) -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  
+  <!-- الخط الرسمي والأيقونات -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    .cart-page-canvas {
+      padding: 30px 0 80px;
+      min-height: 75vh;
+    }
+
+    .cart-header-title {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .cart-header-title h1 {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+
+    .cart-header-title p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    /* شاشة السلة الفارغة لبراند الملابس */
+    .empty-cart-panel {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 60px 24px;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+      box-shadow: var(--shadow-card);
+    }
+
+    .empty-cart-icon-wrap {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+      border: 2px dashed var(--border-color);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background: var(--bg-elevated);
+    }
+
+    .empty-cart-icon-wrap i.fa-bag-shopping {
+      font-size: 3.2rem;
+      color: var(--text-subtle);
+    }
+
+    .empty-cart-icon-wrap .status-cross {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 28px;
+      height: 28px;
+      background-color: var(--fashion-danger, #ef4444);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .empty-cart-panel h3 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .empty-cart-panel p {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      max-width: 500px;
+      margin: 0 auto 26px;
+    }
+
+    .btn-return-shop {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      padding: 13px 30px;
+      border-radius: var(--radius-pill);
+      font-size: 0.95rem;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(15, 23, 42, 0.25);
+      transition: var(--transition-fast);
+    }
+
+    .btn-return-shop:hover {
+      background: var(--fashion-accent, #2563eb);
+      transform: translateY(-2px);
+    }
+
+    /* تقسيم السلة الممتلئة */
+    .cart-grid-view {
+      display: none;
+      grid-template-columns: 1fr 380px;
+      gap: 28px;
+      align-items: flex-start;
+    }
+
+    /* كروت قطع الملابس المضافة */
+    .cart-products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .cart-item-row-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: var(--shadow-card);
+      transition: border-color 0.2s ease;
+    }
+
+    .cart-item-row-card:hover {
+      border-color: #cbd5e1;
+    }
+
+    .cart-item-left-info {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex: 1;
+    }
+
+    /* الصورة الطولية للموديل داخل السلة */
+    .cart-thumb-box {
+      width: 78px;
+      height: 96px;
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .cart-thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    .cart-meta-info h3 {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    /* شارات مقاس ولون الملابس */
+    .cart-clothing-tags {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag-size-pill, .tag-color-pill {
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--border-color);
+      background: var(--bg-elevated);
+    }
+
+    .tag-size-pill {
+      color: var(--fashion-primary, #0f172a);
+      border-color: #cbd5e1;
+    }
+
+    body.dark-mode .tag-size-pill {
+      color: #38bdf8;
+      border-color: #334155;
+    }
+
+    .tag-color-pill {
+      color: var(--fashion-accent, #2563eb);
+    }
+
+    .cart-item-stepper {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      background: var(--bg-elevated);
+      overflow: hidden;
+      height: 30px;
+    }
+
+    .stepper-action-btn {
+      width: 30px;
+      height: 100%;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .stepper-action-btn:hover {
+      background: var(--border-color);
+      color: var(--text-main);
+    }
+
+    .stepper-count-val {
+      width: 32px;
+      text-align: center;
+      font-size: 0.88rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .cart-item-right-pricing {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .btn-trash-item {
+      color: var(--text-subtle);
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .btn-trash-item:hover {
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .item-price-sum {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    /* ملخص الفاتورة */
+    .cart-invoice-sidebar {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 26px;
+      box-shadow: var(--shadow-card);
+      position: sticky;
+      top: 90px;
+    }
+
+    .cart-invoice-sidebar h2 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .invoice-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      font-size: 0.92rem;
+      color: var(--text-muted);
+    }
+
+    .invoice-line strong {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    .invoice-divider {
+      border: none;
+      border-top: 1px dashed var(--border-color);
+      margin: 18px 0;
+    }
+
+    .invoice-total-highlight {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .invoice-total-highlight span {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .invoice-total-highlight strong {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .cash-delivery-notice {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .cash-delivery-notice strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    .btn-proceed-checkout {
+      width: 100%;
+      background: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      padding: 15px;
+      border-radius: var(--radius-pill);
+      font-size: 1.05rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(15, 23, 42, 0.25);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      border: none;
+    }
+
+    .btn-proceed-checkout:hover {
+      background: var(--fashion-accent, #2563eb);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    body.dark-mode .btn-proceed-checkout {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+
+    .back-store-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .back-store-link:hover {
+      color: var(--fashion-accent, #2563eb);
+    }
+
+    @media (max-width: 992px) {
+      .cart-grid-view { grid-template-columns: 1fr; }
+      .cart-invoice-sidebar { position: static; }
+    }
+
+    @media (max-width: 768px) {
+      .cart-page-canvas { padding: 16px 0 60px; }
+      .cart-header-title h1 { font-size: 1.5rem; }
+      .cart-item-row-card { padding: 12px; gap: 12px; }
+      .cart-thumb-box { width: 65px; height: 80px; }
+      .cart-meta-info h3 { font-size: 0.85rem; }
+      .item-price-sum { font-size: 1.05rem; }
+      .cart-invoice-sidebar { padding: 18px; }
+    }
+  </style>
+</head>
+<body class="fashion-theme">
+
+  <!-- 1. شريط العروض العلوي -->
+  <div class="fashion-ticker">
+    <div class="ticker-track">
+      <span>🔥 كولكشن جديد من أحمدكو: خامات قطن 100% وموديلات أوفر سايز راقية</span>
+      <span>•</span>
+      <span>🚚 حق المعاينة وقياس الملابس أمام المندوب متاح بالكامل قبل الدفع</span>
+      <span>•</span>
+      <span>⚡ شحن لجميع محافظات مصر وتغليف فاخر يليق بطلبك</span>
+      <span>•</span>
+      <span>💵 الدفع عند الاستلام كاش بكل ثقة وأمان</span>
+    </div>
+  </div>
+
+  <!-- 2. رأس المتجر الموحد -->
+  <header class="fashion-header">
+    <div class="container header-inner">
+      <!-- شعار براند أحمدكو -->
+      <a href="index.html" class="brand-fashion">
+        <img src="logo.png" alt="أحمدكو Ahmedco Store" class="main-store-logo">
+      </a>
+
+      <div class="dream-header-tools">
+        <!-- مفتاح الوضع الليلي -->
+        <div class="dark-mode-toggle-wrap" title="تبديل الوضع الليلي / الفاتح">
+          <label class="switch-ui" for="dark-mode-checkbox">
+            <input type="checkbox" id="dark-mode-checkbox">
+            <span class="slider-switch round">
+              <i class="fa-solid fa-sun icon-sun"></i>
+              <i class="fa-solid fa-moon icon-moon"></i>
+            </span>
+          </label>
+        </div>
+
+        <div class="header-v-divider"></div>
+
+        <a href="index.html" class="dream-brand" style="font-size: 0.9rem; font-weight: 800; color: var(--text-muted); display:flex; align-items:center; gap:6px;">
+          <i class="fa-solid fa-house"></i> متابعة التسوق
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. مساحة حقيبة التسوق -->
+  <main class="cart-page-canvas">
+    <div class="container">
+      
+      <div class="cart-header-title">
+        <h1>حقيبة التسوق</h1>
+        <p id="cart-counter-subtitle">جاري فحص مشترياتك...</p>
+      </div>
+
+      <!-- الحالة 1: الحقيبة فارغة -->
+      <section class="empty-cart-panel" id="empty-cart-box">
+        <div class="empty-cart-icon-wrap">
+          <i class="fa-solid fa-bag-shopping"></i>
+          <div class="status-cross"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+        <h3>حقيبتك فارغة حتى الآن</h3>
+        <p>لم تقم بإضافة أي قطع ملابس بعد. استعرض أحدث كولكشن من أحمدكو واختر مقاساتك وستايلك المفضل بسهولة.</p>
+        <a href="index.html" class="btn-return-shop">
+          <i class="fa-solid fa-arrow-right"></i> تصفح كولكشن الملابس
+        </a>
+      </section>
+
+      <!-- الحالة 2: الحقيبة تحتوي على قطع ملابس -->
+      <section class="cart-grid-view" id="filled-cart-box">
+        
+        <!-- قائمة الملابس المضافة -->
+        <div class="cart-products-list" id="cart-items-container">
+          <!-- تُحقن بواسطة الجافاسكريبت -->
+        </div>
+
+        <!-- ملخص الفاتورة الجانبي -->
+        <aside class="cart-invoice-sidebar">
+          <h2>ملخص الحساب</h2>
+
+          <div class="invoice-line">
+            <span>إجمالي الملابس:</span>
+            <strong id="subtotal-display">0.00 ج.م</strong>
+          </div>
+
+          <div class="invoice-line">
+            <span>مصاريف الشحن والتوصيل:</span>
+            <strong style="color: var(--fashion-accent, #2563eb);">تُحسب في خطوة الشحن</strong>
+          </div>
+
+          <hr class="invoice-divider">
+
+          <div class="invoice-total-highlight">
+            <span>المجموع النهائي:</span>
+            <strong id="final-total-display">0.00 ج.م</strong>
+          </div>
+
+          <div class="cash-delivery-notice">
+            <strong><i class="fa-solid fa-shirt"></i> الدفع عند الاستلام مع حق القياس</strong>
+            يمكنك فتح شحنة الملابس والتأكد من المقاسات وجودة خامات القطن 100% أمام مندوب الشحن قبل دفع أي مبلغ.
+          </div>
+
+          <!-- الانتقال لصفحة كتابة العنوان والشحن -->
+          <button class="btn-proceed-checkout" onclick="window.location.href='checkout.html'">
+            <span>متابعة إتمام الطلب والشحن</span>
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+
+          <a href="index.html" class="back-store-link">
+            <i class="fa-solid fa-plus"></i> إضافة موديلات أخرى للحقيبة
+          </a>
+        </aside>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 4. تذييل المتجر الفخم (Footer) -->
+  <footer class="fashion-footer">
+    <div class="container">
+      <div class="footer-simple-center">
+        <div class="footer-simple-card">
+          <img src="logo.png" alt="أحمدكو">
+        </div>
+        <div class="footer-simple-brand-text">
+          <h3>براند أحمدكو للأزياء والملابس</h3>
+          <p>أقمشة قطن 100% • خياطة وتقفيل راقٍ • حق المعاينة وقياس الملابس قبل الدفع</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom-copyright">
+        <div class="container copyright-flex-dream">
+          <div class="footer-copy-right">
+            <span>© 2026 براند أحمدكو (Ahmedco Fashion). جميع الحقوق محفوظة.</span>
+          </div>
+
+          <div class="footer-social-mid">
+            <a href="#" target="_blank" title="تيك توك"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" target="_blank" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" target="_blank" title="انستجرام"><i class="fa-brands fa-instagram"></i></a>
+          </div>
+
+          <div class="footer-dev-left" dir="ltr">
+            <span class="dev-label-eng">Designed &amp; Developed by</span>
+            <a href="https://wa.me/201101579399" target="_blank" class="dev-eng-highlight" title="واتساب المطور">
+              ENG : Ahmed Mohamed
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 5. زر المحادثة العائم المتناوب -->
+  <div class="alternating-chat-widget" id="alternating-chat-btn" title="تواصل معنا">
+    <a href="https://wa.me/201101579399" target="_blank" class="chat-circle-link whatsapp-mode" id="chat-link">
+      <i class="fa-brands fa-whatsapp chat-icon" id="chat-icon"></i>
+    </a>
+  </div>
+
+  <!-- شاشة الصيانة وإغلاق المتجر -->
+  <div class="store-closed-screen" id="store-closed-modal" style="display: none;">
+    <div class="closed-glass-box">
+      <img src="logo.png" alt="أحمدكو" style="height: 60px; margin: 0 auto; display:block;">
+      <h2>تجهيز الكولكشن الجديد وجرد المخزون</h2>
+      <p>نقوم حالياً بجرد القطع وتحديث المقاسات والألوان المتوفرة.<br>نعود إليكم في أبهى حلة خلال وقت قصير بإذن الله.</p>
+      <a href="https://wa.me/201101579399" target="_blank" class="btn-claim-offer-3d" style="margin: 0 auto; max-width: 280px; text-decoration:none; display:inline-flex;">
+        <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> تواصل معنا عبر واتساب
+      </a>
+    </div>
+  </div>
+
+  <!-- المحرك البرمجي لإدارة عناصر حقيبة التسوق -->
+  <script>
+    'use strict';
+
+    // 1. إعدادات مشروع فايربيز الخاص بمتجر أحمدكو (ahmedco-brand)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbZhiHbPf97rFULB2mg_o4L74e9oateto",
+      authDomain: "ahmedco-brand.firebaseapp.com",
+      projectId: "ahmedco-brand",
+      storageBucket: "ahmedco-brand.firebasestorage.app",
+      messagingSenderId: "116297730401",
+      appId: "1:116297730401:web:d73eed3234c8da8c821d20",
+      measurementId: "G-EYFCWNCHF3"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // مزامنة حالة إغلاق المتجر
+    function applyStoreClosedState(isClosed) {
+      const modal = document.getElementById('store-closed-modal');
+      if (!modal) return;
+      if (isClosed) {
+        modal.style.setProperty('display', 'flex', 'important');
+        document.body.style.overflow = 'hidden';
+      } else {
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+    applyStoreClosedState(localStorage.getItem('ahmedco_store_closed') === 'true');
+    db.collection('settings').doc('status').onSnapshot(doc => {
+      if (doc.exists) {
+        const closed = doc.data().isClosed === true;
+        localStorage.setItem('ahmedco_store_closed', closed ? 'true' : 'false');
+        applyStoreClosedState(closed);
+      }
+    }, err => {});
+
+    function getCart() {
+      return JSON.parse(localStorage.getItem('ahmedco_cart')) || [];
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem('ahmedco_cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    function renderCart() {
+      const cart = getCart();
+      const emptyBox = document.getElementById('empty-cart-box');
+      const filledBox = document.getElementById('filled-cart-box');
+      const itemsContainer = document.getElementById('cart-items-container');
+      const subtitle = document.getElementById('cart-counter-subtitle');
+      const subtotalEl = document.getElementById('subtotal-display');
+      const finalTotalEl = document.getElementById('final-total-display');
+      const mobCounter = document.getElementById('mob-cart-counter');
+
+      const totalItems = cart.reduce((acc, i) => acc + (Number(i.quantity) || 1), 0);
+      const totalPrice = cart.reduce((acc, i) => acc + (Number(i.price) * (Number(i.quantity) || 1)), 0);
+
+      if (mobCounter) mobCounter.textContent = totalItems;
+
+      if (cart.length === 0) {
+        emptyBox.style.display = 'block';
+        filledBox.style.display = 'none';
+        subtitle.textContent = 'حقيبة التسوق فارغة';
+        return;
+      }
+
+      emptyBox.style.display = 'none';
+      filledBox.style.display = 'grid';
+      subtitle.textContent = `لديك (${totalItems}) قطع ملابس جاهزة لإتمام الطلب`;
+
+      itemsContainer.innerHTML = cart.map(item => {
+        const key = item.cartId || item.id;
+        return `
+          <div class="cart-item-row-card">
+            <div class="cart-item-left-info">
+              <div class="cart-thumb-box">
+                <img src="${item.image || 'logo.png'}" alt="${item.name}">
+              </div>
+              <div class="cart-meta-info">
+                <h3>${item.name}</h3>
+                
+                <div class="cart-clothing-tags">
+                  ${item.size ? `<span class="tag-size-pill">المقاس: ${item.size}</span>` : ''}
+                  ${item.color ? `<span class="tag-color-pill"><i class="fa-solid fa-palette"></i> اللون: ${item.color}</span>` : ''}
+                </div>
+
+                <div class="cart-item-stepper">
+                  <button class="stepper-action-btn" onclick="updateItemQuantity('${key}', 1)">+</button>
+                  <span class="stepper-count-val">${item.quantity}</span>
+                  <button class="stepper-action-btn" onclick="updateItemQuantity('${key}', -1)">-</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="cart-item-right-pricing">
+              <button class="btn-trash-item" onclick="deleteCartItem('${key}')" title="إزالة القطعة">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+              <span class="item-price-sum">${(Number(item.price) * Number(item.quantity)).toFixed(2)} ج.م</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      subtotalEl.textContent = `${totalPrice.toFixed(2)} ج.م`;
+      finalTotalEl.textContent = `${totalPrice.toFixed(2)} ج.م`;
+    }
+
+    // تعديل الكمية
+    window.updateItemQuantity = function(key, delta) {
+      let cart = getCart();
+      const item = cart.find(i => String(i.cartId || i.id) === String(key));
+      if (!item) return;
+
+      item.quantity = (Number(item.quantity) || 1) + delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(i => String(i.cartId || i.id) !== String(key));
+      }
+      saveCart(cart);
+    };
+
+    // حذف القطعة
+    window.deleteCartItem = function(key) {
+      let cart = getCart();
+      cart = cart.filter(i => String(i.cartId || i.id) !== String(key));
+      saveCart(cart);
+    };
+
+    // دارك مود
+    const darkCheckbox = document.getElementById('dark-mode-checkbox');
+    if (localStorage.getItem('ahmedco_dark_mode') === 'enabled') {
+      document.body.classList.add('dark-mode');
+      if (darkCheckbox) darkCheckbox.checked = true;
+    }
+    darkCheckbox?.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'enabled');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'disabled');
+      }
+    });
+
+    // زر الشات
+    const chatLink = document.getElementById('chat-link');
+    const chatIcon = document.getElementById('chat-icon');
+    let isWhatsApp = true;
+    setInterval(() => {
+      isWhatsApp = !isWhatsApp;
+      if (!chatIcon || !chatLink) return;
+      chatIcon.classList.add('rotate-anim');
+      setTimeout(() => {
+        if (isWhatsApp) {
+          chatLink.className = 'chat-circle-link whatsapp-mode';
+          chatLink.href = 'https://wa.me/201101579399';
+          chatIcon.className = 'fa-brands fa-whatsapp chat-icon';
+        } else {
+          chatLink.className = 'chat-circle-link messenger-mode';
+          chatLink.href = 'https://m.me/ahmedcostore';
+          chatIcon.className = 'fa-brands fa-facebook-messenger chat-icon';
+        }
+        chatIcon.classList.remove('rotate-anim');
+      }, 250);
+    }, 5000);
+
+    document.addEventListener('DOMContentLoaded', renderCart);
+  </script>
+</body>
+</html>
