@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>أحمدكو | لوحة تحكم البراند (Ahmedco Fashion HQ)</title>
+
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --admin-primary: #0f172a;
+      --admin-primary-hover: #1e293b;
+      --admin-accent: #2563eb;
+      --admin-accent-hover: #1d4ed8;
+      --admin-dark-sidebar: #090d16;
+      --admin-bg: #f8fafc;
+      --admin-surface: #ffffff;
+      --admin-border: #e2e8f0;
+      --admin-border-focus: #2563eb;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --shadow-card: 0 2px 10px rgba(15, 23, 42, 0.04);
+      --shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', system-ui, sans-serif;
+    }
+
+    body {
+      background-color: var(--admin-bg);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      direction: rtl;
+      overflow-x: hidden;
+    }
+
+    /* الشريط الجانبي */
+    .admin-sidebar {
+      width: 270px;
+      background-color: var(--admin-dark-sidebar);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .sidebar-brand-box {
+      padding: 20px;
+      background: #04070d;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sidebar-brand-logo {
+      height: 44px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .sidebar-brand-titles h2 {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .sidebar-brand-titles span {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 16px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu li a {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 13px 22px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 700;
+      border-right: 4px solid transparent;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .sidebar-menu li a:hover,
+    .sidebar-menu li.active a {
+      background-color: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      border-right-color: var(--admin-accent);
+    }
+
+    .sidebar-menu li a i {
+      font-size: 1.1rem;
+      width: 22px;
+      text-align: center;
+      color: #38bdf8;
+    }
+
+    .sidebar-footer-badge {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-online-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* المنطقة الرئيسية */
+    .admin-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .admin-topbar {
+      background: var(--admin-surface);
+      height: 70px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--admin-border);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .topbar-title-wrap h1 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+
+    .topbar-tools {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-view-store {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--admin-primary);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-view-store:hover {
+      background: var(--admin-accent);
+      transform: translateY(-1px);
+    }
+
+    .content-canvas {
+      padding: 28px;
+      overflow-y: auto;
+    }
+
+    /* التبويبات والمحتويات */
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    .tab-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* تقسيم نموذج الإضافة والجدول */
+    .admin-grid-layout {
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .admin-card {
+      background: var(--admin-surface);
+      border: 1px solid var(--admin-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .admin-card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--admin-border);
+      background: #fafbfc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-card-header h2 {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .admin-card-header h2 i {
+      color: var(--admin-accent);
+    }
+
+    .admin-card-body {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--admin-border);
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+      background: var(--admin-surface);
+    }
+
+    .form-control:focus {
+      border-color: var(--admin-border-focus);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* منطقة رفع صور الملابس */
+    .file-upload-zone {
+      border: 2px dashed #cbd5e1;
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .file-upload-zone:hover {
+      border-color: var(--admin-accent);
+    }
+
+    .file-upload-zone i {
+      font-size: 1.8rem;
+      color: var(--admin-accent);
+      margin-bottom: 6px;
+    }
+
+    .file-upload-zone p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .preview-thumbs-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .thumb-slot {
+      height: 75px;
+      background: #ffffff;
+      border: 1px solid var(--admin-border);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .thumb-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+    }
+
+    /* أزرار الحفظ والإلغاء */
+    .btn-submit-action {
+      width: 100%;
+      padding: 12px;
+      background: var(--admin-primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.2);
+      transition: all 0.2s;
+      margin-top: 14px;
+    }
+
+    .btn-submit-action:hover {
+      background: var(--admin-accent);
+    }
+
+    .btn-cancel-edit {
+      display: none;
+      width: 100%;
+      padding: 10px;
+      background: #e2e8f0;
+      color: #475569;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    /* جدول الجرد */
+    .table-tools-strip {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 0.86rem;
+    }
+
+    .admin-table th {
+      background: #f8fafc;
+      padding: 12px;
+      font-weight: 800;
+      border-bottom: 2px solid var(--admin-border);
+      color: var(--text-muted);
+    }
+
+    .admin-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--admin-border);
+      vertical-align: middle;
+    }
+
+    .admin-table tr:hover {
+      background-color: #f8fafc;
+    }
+
+    .product-row-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .product-row-preview img {
+      width: 44px;
+      height: 52px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 4px;
+      border: 1px solid var(--admin-border);
+    }
+
+    .stock-pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 800;
+      user-select: none;
+    }
+
+    .stock-available { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .stock-low { background: #fef3c7; color: #b45309; border: 1px solid #fde047; }
+    .stock-out { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    .action-icons-wrap {
+      display: flex;
+      gap: 6px;
+    }
+
+    .action-btn-mini {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+      border: 1px solid var(--admin-border);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+
+    .btn-edit-action { color: #0284c7; }
+    .btn-edit-action:hover { background: #0284c7; color: #fff; }
+
+    .btn-delete-action { color: var(--danger); }
+    .btn-delete-action:hover { background: var(--danger); color: #fff; }
+
+    /* الدارك مود */
+    body.admin-dark {
+      --admin-bg: #090d16;
+      --admin-surface: #111827;
+      --admin-border: #243044;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    body.admin-dark .admin-topbar,
+    body.admin-dark .admin-card-header {
+      background: #162032;
+      border-color: #243044;
+    }
+    body.admin-dark .form-control,
+    body.admin-dark .file-upload-zone {
+      background: #090d16 !important;
+      color: #f8fafc !important;
+      border-color: #243044 !important;
+    }
+    body.admin-dark .admin-table th { background: #162032; }
+    body.admin-dark .admin-table td { border-color: #243044; }
+    body.admin-dark .admin-table tr:hover { background: #1a2333; }
+
+    @media (max-width: 992px) {
+      body { flex-direction: column; }
+      .admin-sidebar { width: 100%; height: auto; position: relative; }
+      .admin-grid-layout { grid-template-columns: 1fr; }
+      .sidebar-menu { display: flex; overflow-x: auto; padding: 6px; }
+      .sidebar-menu li a { white-space: nowrap; padding: 8px 12px; border-right: none; border-bottom: 3px solid transparent; }
+      .sidebar-menu li.active a { border-bottom-color: var(--admin-accent); }
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+  <div id="admin-login-gate" style="position:fixed; inset:0; z-index:9999999; background:#090d16; display:flex; align-items:center; justify-content:center; padding:16px;">
+    <form id="admin-login-form" style="background:#111827; padding:34px 28px; border-radius:14px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.6); border:1px solid #243044;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <img src="logo.png" style="height:56px; margin:0 auto 10px; display:block;">
+        <h2 style="color:#fff; font-size:1.15rem; font-weight:900;">لوحة تحكم براند أحمدكو</h2>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="color:#cbd5e1; font-size:0.82rem; font-weight:800; display:block; margin-bottom:6px;">البريد الإلكتروني للإدارة</label>
+        <input type="email" id="admin-login-email" required style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #243044; background:#090d16; color:#fff; outline:none;">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="color:#cbd5e1; font-size:0.82rem; font-weight:800; display:block; margin-bottom:6px;">كلمة المرور</label>
+        <input type="password" id="admin-login-pass" required style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid #243044; background:#090d16; color:#fff; outline:none;">
+      </div>
+      <div id="admin-login-error" style="display:none; color:#f87171; font-size:0.8rem; font-weight:800; margin-bottom:10px;"></div>
+      <button type="submit" style="width:100%; padding:12px; background:#2563eb; color:#fff; border:none; border-radius:8px; font-weight:900; cursor:pointer;">تسجيل الدخول</button>
+    </form>
+  </div>
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand-box">
+      <img src="logo.png" alt="أحمدكو" class="sidebar-brand-logo">
+      <div class="sidebar-brand-titles">
+        <h2>براند أحمدكو</h2>
+        <span>لوحة إدارة الأزياء</span>
+      </div>
+    </div>
+
+    <ul class="sidebar-menu">
+      <li class="active" data-target="tab-products">
+        <a onclick="switchAdminTab('tab-products')"><i class="fa-solid fa-shirt"></i> <span>إدارة الموديلات والملابس</span></a>
+      </li>
+      <li data-target="tab-orders">
+        <a onclick="switchAdminTab('tab-orders')"><i class="fa-solid fa-truck-ramp-box"></i> <span>شحنات وطلبات العملاء</span></a>
+      </li>
+      <li data-target="tab-offers">
+        <a onclick="switchAdminTab('tab-offers')"><i class="fa-solid fa-fire"></i> <span>بانرات العروض الحصرية</span></a>
+      </li>
+      <li data-target="tab-shipping">
+        <a onclick="switchAdminTab('tab-shipping')"><i class="fa-solid fa-map-location-dot"></i> <span>شحن المحافظات (27)</span></a>
+      </li>
+      <li data-target="tab-settings">
+        <a onclick="switchAdminTab('tab-settings')"><i class="fa-solid fa-sliders"></i> <span>الكوبونات وحالة المتجر</span></a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer-badge">
+      <span class="status-online-dot"></span>
+      <span>متصل بقاعدة ahmedco-brand</span>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="topbar-title-wrap">
+        <h1 id="topbar-heading">إدارة الموديلات والمخزون</h1>
+      </div>
+      <div class="topbar-tools">
+        <button type="button" id="admin-theme-toggle" class="btn-view-store" style="background:#1e293b;" onclick="toggleAdminDarkMode()">
+          <i class="fa-solid fa-moon"></i> <span id="admin-theme-text">الوضع الليلي</span>
+        </button>
+        <a href="index.html" target="_blank" class="btn-view-store">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> واجهة المتجر
+        </a>
+        <button type="button" id="btn-admin-logout" class="btn-view-store" style="background:#dc2626;">
+          <i class="fa-solid fa-right-from-bracket"></i> خروج
+        </button>
+      </div>
+    </header>
+
+    <main class="content-canvas">
+
+      <section class="tab-section active" id="tab-products">
+        <div class="admin-grid-layout">
+          
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h2 id="form-header-title"><i class="fa-solid fa-plus-circle"></i> إضافة قطعة ملابس جديدة</h2>
+            </div>
+            <div class="admin-card-body">
+              <form id="product-master-form">
+                
+                <div class="form-group">
+                  <label for="prod-name">اسم الموديل / القطعة <span style="color:red">*</span></label>
+                  <input type="text" id="prod-name" class="form-control" placeholder="مثال: هودي أوفر سايز ميلتون ثقيل بطانة صوف" required>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="prod-brand">الكولكشن / المجموعة</label>
+                    <select id="prod-brand" class="form-control" required>
+                      <option value="Ahmedco Originals">Ahmedco Originals</option>
+                      <option value="Streetwear Urban">Streetwear Urban</option>
+                      <option value="Winter Collection">Winter Collection</option>
+                      <option value="Summer Essentials">Summer Essentials</option>
+                      <option value="Basics Only">Basics Only</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="prod-category">نوع القطعة</label>
+                    <select id="prod-category" class="form-control" required>
+                      <option value="hoodies">هوديز وسويت شيرت</option>
+                      <option value="tshirts">تيشرتات وقمصان</option>
+                      <option value="pants">بناطيل وشروال كارجو</option>
+                      <option value="jackets">جاكيتات ومعاطف</option>
+                      <option value="sets">أطقم وسوت كاملة</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="prod-price">سعر البيع (ج.م) <span style="color:red">*</span></label>
+                    <input type="number" id="prod-price" class="form-control" placeholder="599" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="prod-old-price">السعر قبل الخصم (للتشطيب)</label>
+                    <input type="number" id="prod-old-price" class="form-control" placeholder="799">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label><i class="fa-solid fa-ruler"></i> المقاسات المتوفرة للقطعة</label>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid var(--admin-border);">
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="M" checked> M</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="L" checked> L</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="XL" checked> XL</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="2XL" checked> 2XL</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="3XL"> 3XL</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="size-chk" value="Oversized Free"> Oversized Free</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label><i class="fa-solid fa-palette"></i> الألوان المتوفرة</label>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid var(--admin-border);">
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="أسود" checked> أسود</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="أبيض" checked> أبيض</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="رمادي" checked> رمادي</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="بيج"> بيج</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="كحلي"> كحلي</label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:0.85rem; cursor:pointer;"><input type="checkbox" class="color-chk" value="زيتي"> زيتي</label>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="prod-stock">المخزون الإجمالي المتاح</label>
+                  <input type="number" id="prod-stock" class="form-control" value="25" min="0" required>
+                </div>
+
+                <div class="form-group">
+                  <label><i class="fa-solid fa-images"></i> صور الموديل (تظهر وتتبدل بالسلايدر)</label>
+                  <div class="file-upload-zone" onclick="document.getElementById('prod-file-input').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p>اختر حتى 4 صور طولية للموديل أو الخامة</p>
+                    <input type="file" id="prod-file-input" multiple accept="image/*" style="display:none">
+                  </div>
+                  <div class="preview-thumbs-grid" id="thumbs-preview-box">
+                    <div class="thumb-slot">لم يتم اختيار صور</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label>مواصفات الخامة والتقفيل</label>
+                  <textarea id="prod-specs-text" class="form-control" rows="3" placeholder="مثال: قطن مصري 100% معالج ضد الانكماش | قصة أوفر سايز مريحة | خياطة مزدوجة"></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit-action" id="btn-submit-main">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> حفظ ونشر الموديل
+                </button>
+                <button type="button" class="btn-cancel-edit" id="btn-cancel-edit" onclick="cancelProductEdit()">
+                  إلغاء التعديل
+                </button>
+
+              </form>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h2><i class="fa-solid fa-boxes-stacked"></i> كولكشن الملابس المعروضة</h2>
+            </div>
+            <div class="admin-card-body">
+              <div class="table-tools-strip">
+                <input type="text" id="inventory-search" class="form-control" placeholder="ابحث باسم الموديل أو القسم...">
+              </div>
+
+              <div style="overflow-x: auto; max-height: 600px;">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>الموديل</th>
+                      <th>الكولكشن</th>
+                      <th>السعر</th>
+                      <th>المخزون</th>
+                      <th>الحالة</th>
+                      <th>إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="inventory-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-orders">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fa-solid fa-truck-fast"></i> إدارة شحنات وطلبات الملابس</h2>
+            <button class="btn-view-store" style="background:#2563eb; padding:6px 12px; font-size:0.8rem;" onclick="loadOrdersData()">
+              <i class="fa-solid fa-arrows-rotate"></i> تحديث
+            </button>
+          </div>
+          <div class="admin-card-body">
+            <div style="overflow-x: auto;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>رقم الطلب</th>
+                    <th>العميل</th>
+                    <th>الهاتف</th>
+                    <th>العنوان والمحافظة</th>
+                    <th>القطع والمقاسات</th>
+                    <th>الإجمالي</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="orders-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-offers">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fa-solid fa-fire" style="color:#ef4444;"></i> بانرات عروض أحمدكو (3D Hero)</h2>
+          </div>
+          <div class="admin-card-body">
+            <form id="create-banner-offer-form" style="background:#f8fafc; border:1px solid var(--admin-border); border-radius:10px; padding:16px; margin-bottom:20px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>نص الشارة</label>
+                  <input type="text" id="b-offer-badge" class="form-control" value="🔥 كولكشن حصري" required>
+                </div>
+                <div class="form-group">
+                  <label>عنوان العرض الرئيسي</label>
+                  <input type="text" id="b-offer-title" class="form-control" placeholder="مثال: خصم 30% على جميع الهوديز" required>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>التفاصيل</label>
+                  <input type="text" id="b-offer-subtitle" class="form-control" placeholder="مثال: خامات قطن 100% مع شحن سريع" required>
+                </div>
+                <div class="form-group">
+                  <label>السعر / التوفير</label>
+                  <input type="text" id="b-offer-price" class="form-control" placeholder="مثال: بـ 499 ج.م بدلاً من 750 ج.م" required>
+                </div>
+              </div>
+              <button type="submit" class="btn-submit-action" style="background:#2563eb;">نشر العرض في الواجهة</button>
+            </form>
+            <div id="hot-offers-admin-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-shipping">
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2><i class="fa-solid fa-truck"></i> تسعير شحن الـ 27 محافظة</h2>
+            <button type="button" class="btn-view-store" style="background:#2563eb;" onclick="saveAllShippingRates()">حفظ الأسعار</button>
+          </div>
+          <div class="admin-card-body">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:12px;" id="governorates-rates-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section" id="tab-settings">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;">
+          
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h2><i class="fa-solid fa-ticket"></i> إضافة كوبون خصم</h2>
+            </div>
+            <div class="admin-card-body">
+              <div class="form-group">
+                <label>كود الكوبون</label>
+                <input type="text" id="new-cpn-code" class="form-control" placeholder="مثال: AHMED10" style="text-transform:uppercase;">
+              </div>
+              <div class="form-group">
+                <label>نسبة الخصم (%)</label>
+                <input type="number" id="new-cpn-discount" class="form-control" placeholder="10">
+              </div>
+              <button type="button" class="btn-submit-action" style="background:#2563eb;" onclick="adminSaveNewCoupon()">حفظ وتفعيل الكوبون</button>
+              <div id="admin-coupons-list" style="margin-top:14px; display:flex; flex-direction:column; gap:6px;"></div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <h2><i class="fa-solid fa-power-off"></i> حالة تشغيل المتجر (Maintenance)</h2>
+            </div>
+            <div class="admin-card-body">
+              <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:14px; border-radius:8px; border:1px solid var(--admin-border);">
+                <strong>قفل المتجر مؤقتاً لجرد الملابس</strong>
+                <input type="checkbox" id="store-maintenance-toggle" style="width:20px; height:20px;" onchange="toggleStoreMaintenance(this.checked)">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    'use strict';
+
+    // 1. إعدادات فايربيز متجر أحمدكو (ahmedco-brand)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbZhiHbPf97rFULB2mg_o4L74e9oateto",
+      authDomain: "ahmedco-brand.firebaseapp.com",
+      projectId: "ahmedco-brand",
+      storageBucket: "ahmedco-brand.firebasestorage.app",
+      messagingSenderId: "116297730401",
+      appId: "1:116297730401:web:d73eed3234c8da8c821d20",
+      measurementId: "G-EYFCWNCHF3"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      const gate = document.getElementById('admin-login-gate');
+      if (gate) gate.style.display = user ? 'none' : 'flex';
+    });
+
+    document.getElementById('admin-login-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('admin-login-email').value.trim();
+      const pass = document.getElementById('admin-login-pass').value;
+      const errBox = document.getElementById('admin-login-error');
+      errBox.style.display = 'none';
+      try {
+        await auth.signInWithEmailAndPassword(email, pass);
+      } catch (err) {
+        errBox.textContent = 'البريد الإلكتروني أو كلمة المرور غير صحيحة!';
+        errBox.style.display = 'block';
+      }
+    });
+
+    document.getElementById('btn-admin-logout')?.addEventListener('click', () => auth.signOut());
+
+    let adminInventory = [];
+    let adminOrders = [];
+    let editingDocId = null;
+    let uploadedCloudinaryUrls = [];
+
+    // التبديل بين التبويبات
+    window.switchAdminTab = function(tabId) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.sidebar-menu li').forEach(li => li.classList.remove('active'));
+
+      const targetSection = document.getElementById(tabId);
+      if (targetSection) targetSection.classList.add('active');
+
+      const targetMenuItem = document.querySelector(`.sidebar-menu li[data-target="${tabId}"]`);
+      if (targetMenuItem) targetMenuItem.classList.add('active');
+
+      const headingMap = {
+        'tab-products': 'إدارة الموديلات والملابس',
+        'tab-orders': 'شحنات وطلبات العملاء',
+        'tab-offers': 'بانرات العروض الحصرية',
+        'tab-shipping': 'أسعار شحن المحافظات',
+        'tab-settings': 'الكوبونات وحالة المتجر'
+      };
+      document.getElementById('topbar-heading').textContent = headingMap[tabId] || 'لوحة التحكم';
+    };
+
+    // الدارك مود
+    window.toggleAdminDarkMode = function() {
+      document.body.classList.toggle('admin-dark');
+      const isDark = document.body.classList.contains('admin-dark');
+      localStorage.setItem('ahmedco_admin_dark', isDark ? 'enabled' : 'disabled');
+      document.getElementById('admin-theme-text').textContent = isDark ? 'الوضع الفاتح' : 'الوضع الليلي';
+    };
+
+    if (localStorage.getItem('ahmedco_admin_dark') === 'enabled') {
+      document.body.classList.add('admin-dark');
+      document.getElementById('admin-theme-text').textContent = 'الوضع الفاتح';
+    }
+
+    // رفع الصور (Cloudinary أو تحويل محلي سريع)
+    document.getElementById('prod-file-input')?.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files).slice(0, 4);
+      if (files.length === 0) return;
+
+      uploadedCloudinaryUrls = [];
+      const thumbsBox = document.getElementById('thumbs-preview-box');
+      thumbsBox.innerHTML = 'جاري معالجة الصور...';
+
+      for (const file of files) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          uploadedCloudinaryUrls.push(ev.target.result);
+          if (uploadedCloudinaryUrls.length === files.length) {
+            thumbsBox.innerHTML = uploadedCloudinaryUrls.map(url => `
+              <div class="thumb-slot"><img src="${url}"></div>
+            `).join('');
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // جلب وعرض منتجات الملابس
+    async function loadInventoryData() {
+      const tbody = document.getElementById('inventory-tbody');
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">جاري جلب الملابس...</td></tr>`;
+
+      try {
+        const snapshot = await db.collection('products').get();
+        adminInventory = [];
+        snapshot.forEach(doc => adminInventory.push({ id: doc.id, ...doc.data() }));
+      } catch (err) {
+        adminInventory = JSON.parse(localStorage.getItem('ahmedco_store_inventory')) || [];
+      }
+
+      renderInventoryTable(adminInventory);
+    }
+
+    function renderInventoryTable(items) {
+      const tbody = document.getElementById('inventory-tbody');
+      if (!tbody) return;
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px;">لا توجد قطع ملابس مضافة حتى الآن.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(item => {
+        const stockQty = Number(item.stock) || 0;
+        const mainImg = (item.images && item.images[0]) || item.image || 'logo.png';
+        const isAvail = stockQty > 0;
+
+        return `
+          <tr>
+            <td>
+              <div class="product-row-preview">
+                <img src="${mainImg}" alt="${item.title}">
+                <div>
+                  <strong>${item.title}</strong>
+                  <div style="font-size:0.75rem; color:#64748b;">المقاسات: ${(item.sizes || ['M', 'L', 'XL']).join(', ')}</div>
+                </div>
+              </div>
+            </td>
+            <td><strong>${item.brand || 'Ahmedco'}</strong></td>
+            <td><strong>${Number(item.price).toFixed(2)} ج.م</strong></td>
+            <td>
+              <input type="number" value="${stockQty}" min="0" style="width:60px; padding:4px; text-align:center; border:1px solid #cbd5e1; border-radius:4px;" onchange="quickUpdateStock('${item.id}', this.value)">
+            </td>
+            <td>
+              <span class="stock-pill ${isAvail ? 'stock-available' : 'stock-out'}">
+                ${isAvail ? 'متوفر' : 'نفذ المقاس'}
+              </span>
+            </td>
+            <td>
+              <div class="action-icons-wrap">
+                <button class="action-btn-mini btn-edit-action" onclick="editProduct('${item.id}')" title="تعديل"><i class="fa-solid fa-pen"></i></button>
+                <button class="action-btn-mini btn-delete-action" onclick="deleteProduct('${item.id}')" title="حذف"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    window.quickUpdateStock = async function(id, val) {
+      const stock = parseInt(val) || 0;
+      try {
+        await db.collection('products').doc(id).update({ stock: stock, inStock: stock > 0 });
+      } catch (e) {}
+    };
+
+    // إضافة / تعديل قطعة ملابس
+    document.getElementById('product-master-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submitBtn = document.getElementById('btn-submit-main');
+      submitBtn.disabled = true;
+
+      const price = parseFloat(document.getElementById('prod-price').value) || 0;
+      const oldPrice = parseFloat(document.getElementById('prod-old-price').value) || (price + 150);
+      const sizes = Array.from(document.querySelectorAll('.size-chk:checked')).map(c => c.value);
+      const colors = Array.from(document.querySelectorAll('.color-chk:checked')).map(c => c.value);
+      const stock = parseInt(document.getElementById('prod-stock').value) || 20;
+
+      const payload = {
+        title: document.getElementById('prod-name').value.trim(),
+        brand: document.getElementById('prod-brand').value,
+        category: document.getElementById('prod-category').value,
+        price: price,
+        oldPrice: oldPrice,
+        discount: (oldPrice - price).toFixed(2),
+        stock: stock,
+        inStock: stock > 0,
+        sizes: sizes.length ? sizes : ['M', 'L', 'XL'],
+        colors: colors.length ? colors : ['أسود'],
+        specs: document.getElementById('prod-specs-text').value.trim() || 'قطن مصري 100%',
+        rating: 5,
+        ratingCount: 18
+      };
+
+      if (uploadedCloudinaryUrls.length > 0) {
+        payload.image = uploadedCloudinaryUrls[0];
+        payload.images = uploadedCloudinaryUrls;
+      }
+
+      try {
+        if (editingDocId) {
+          await db.collection('products').doc(editingDocId).update(payload);
+          alert('تم تحديث بيانات الموديل بنجاح!');
+        } else {
+          if (!payload.image) payload.image = 'logo.png';
+          await db.collection('products').add(payload);
+          alert('تم نشر الموديل الجديد في براند أحمدكو بنجاح!');
+        }
+        cancelProductEdit();
+        loadInventoryData();
+      } catch (err) {
+        alert('حدث خطأ أثناء الحفظ: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    window.editProduct = function(id) {
+      const prod = adminInventory.find(p => String(p.id) === String(id));
+      if (!prod) return;
+
+      editingDocId = id;
+      document.getElementById('form-header-title').textContent = `تعديل الموديل: ${prod.title}`;
+      document.getElementById('btn-cancel-edit').style.display = 'block';
+      document.getElementById('prod-name').value = prod.title || '';
+      document.getElementById('prod-price').value = prod.price || '';
+      document.getElementById('prod-old-price').value = prod.oldPrice || '';
+      document.getElementById('prod-stock').value = prod.stock || 20;
+      document.getElementById('prod-specs-text').value = prod.specs || '';
+      window.scrollTo({ top: 100, behavior: 'smooth' });
+    };
+
+    window.cancelProductEdit = function() {
+      editingDocId = null;
+      document.getElementById('product-master-form').reset();
+      document.getElementById('btn-cancel-edit').style.display = 'none';
+      document.getElementById('form-header-title').innerHTML = `<i class="fa-solid fa-plus-circle"></i> إضافة قطعة ملابس جديدة`;
+      uploadedCloudinaryUrls = [];
+    };
+
+    window.deleteProduct = async function(id) {
+      if (confirm('هل أنت متأكد من حذف هذه القطعة من المتجر؟')) {
+        try {
+          await db.collection('products').doc(id).delete();
+          loadInventoryData();
+        } catch (e) {
+          alert('تعذر الحذف: ' + e.message);
+        }
+      }
+    };
+
+    // جلب وعرض طلبات الشحن
+    async function loadOrdersData() {
+      const tbody = document.getElementById('orders-tbody');
+      if (!tbody) return;
+
+      try {
+        const snap = await db.collection('orders').orderBy('createdAt', 'desc').get();
+        adminOrders = [];
+        snap.forEach(d => adminOrders.push({ id: d.id, ...d.data() }));
+      } catch (e) {
+        adminOrders = [];
+      }
+
+      if (adminOrders.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px;">لا توجد طلبات جديدة حتى الآن.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = adminOrders.map(order => `
+        <tr>
+          <td><strong>#${order.id.slice(0, 6)}</strong></td>
+          <td><strong>${order.customerName}</strong></td>
+          <td>${order.phone}</td>
+          <td>${order.gov} - ${order.address}</td>
+          <td style="font-size:0.8rem; color:#2563eb;">${order.items}</td>
+          <td><strong>${order.total} ج.م</strong></td>
+          <td>
+            <select onchange="updateOrderStatus('${order.id}', this.value)" style="padding:4px; font-size:0.8rem; border-radius:4px; border:1px solid #cbd5e1;">
+              <option value="قيد التجهيز ⏳" ${order.status.includes('التجهيز') ? 'selected' : ''}>قيد التجهيز ⏳</option>
+              <option value="تم الشحن 🚚" ${order.status.includes('الشحن') ? 'selected' : ''}>تم الشحن 🚚</option>
+              <option value="تم التسليم ✅" ${order.status.includes('التسليم') ? 'selected' : ''}>تم التسليم ✅</option>
+              <option value="ملغي ❌" ${order.status.includes('ملغي') ? 'selected' : ''}>ملغي ❌</option>
+            </select>
+          </td>
+          <td>
+            <button onclick="copyShipmentDetails('${order.id}')" class="btn-view-store" style="padding:4px 8px; font-size:0.75rem;">نسخ للمندوب</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.updateOrderStatus = async function(id, val) {
+      try {
+        await db.collection('orders').doc(id).update({ status: val });
+      } catch (e) {}
+    };
+
+    window.copyShipmentDetails = function(orderId) {
+      const order = adminOrders.find(o => String(o.id) === String(orderId));
+      if (!order) return;
+      const text = `👕 *بوليصة شحن ملابس - براند أحمدكو*%0A` +
+        `• العميل: ${order.customerName}%0A` +
+        `• الهاتف: ${order.phone}%0A` +
+        `• العنوان: ${order.gov} - ${order.address}%0A` +
+        `• القطع والمقاسات: ${order.items}%0A` +
+        `• المطلوب تحصيله: ${order.total} ج.م كاش مع حق القياس.`;
+      navigator.clipboard.writeText(decodeURIComponent(text.replace(/%0A/g, '\n')));
+      alert('تم نسخ تفاصيل الشحنة بنجاح!');
+    };
+
+    // أسعار شحن الـ 27 محافظة
+    const ALL_GOVERNORATES = [
+      { id: "cairo", name: "القاهرة", rate: 35 },
+      { id: "giza", name: "الجيزة", rate: 35 },
+      { id: "alex", name: "الإسكندرية", rate: 45 },
+      { id: "qalyubia", name: "القليوبية", rate: 40 },
+      { id: "sharqia", name: "الشرقية", rate: 45 },
+      { id: "dakahlia", name: "الدقهلية", rate: 45 },
+      { id: "gharbia", name: "الغربية", rate: 45 },
+      { id: "monufia", name: "المنوفية", rate: 45 },
+      { id: "beheira", name: "البحيرة", rate: 45 },
+      { id: "damietta", name: "دمياط", rate: 45 },
+      { id: "port_said", name: "بورسعيد", rate: 50 },
+      { id: "ismailia", name: "الإسماعيلية", rate: 50 },
+      { id: "suez", name: "السويس", rate: 50 },
+      { id: "fayoum", name: "الفيوم", rate: 50 },
+      { id: "beni_suef", name: "بني سويف", rate: 50 },
+      { id: "minya", name: "المنيا", rate: 55 },
+      { id: "assiut", name: "أسيوط", rate: 55 },
+      { id: "sohag", name: "سوهاج", rate: 55 },
+      { id: "qena", name: "قنا", rate: 60 },
+      { id: "luxor", name: "الأقصر", rate: 60 },
+      { id: "aswan", name: "أسوان", rate: 60 }
+    ];
+
+    function initShippingRatesUI() {
+      const grid = document.getElementById('governorates-rates-grid');
+      if (!grid) return;
+      grid.innerHTML = ALL_GOVERNORATES.map(gov => `
+        <div style="background:#f8fafc; border:1px solid var(--admin-border); border-radius:8px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:800; font-size:0.88rem;">${gov.name}</span>
+          <div>
+            <input type="number" class="gov-rate-input" data-gov-id="${gov.id}" value="${gov.rate}" style="width:65px; padding:4px; text-align:center; border:1px solid var(--admin-border); border-radius:4px;">
+            <small style="font-weight:700;">ج.م</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.saveAllShippingRates = async function() {
+      const rates = {};
+      document.querySelectorAll('.gov-rate-input').forEach(i => {
+        rates[i.getAttribute('data-gov-id')] = parseFloat(i.value) || 0;
+      });
+      try {
+        await db.collection('settings').doc('shipping').set(rates);
+        alert('تم حفظ أسعار الشحن لجميع المحافظات بنجاح!');
+      } catch (e) {}
+    };
+
+    // الكوبونات
+    window.adminSaveNewCoupon = async function() {
+      const code = document.getElementById('new-cpn-code').value.trim().toUpperCase();
+      const disc = parseFloat(document.getElementById('new-cpn-discount').value);
+      if (!code || isNaN(disc)) return;
+
+      try {
+        await db.collection('settings').doc('coupons').set({ [code]: disc }, { merge: true });
+        alert(`تم حفظ كوبون [${code}] بخصم ${disc}% بنجاح!`);
+      } catch (e) {}
+    };
+
+    // حالة الصيانة
+    window.toggleStoreMaintenance = async function(isClosed) {
+      localStorage.setItem('ahmedco_store_closed', isClosed ? 'true' : 'false');
+      try {
+        await db.collection('settings').doc('status').set({ isClosed: isClosed }, { merge: true });
+      } catch (e) {}
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadInventoryData();
+      loadOrdersData();
+      initShippingRatesUI();
+    });
+  </script>
+</body>
+</html>
