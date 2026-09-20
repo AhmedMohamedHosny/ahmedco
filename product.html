@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="تفاصيل القطعة، المقاسات المتاحة، والخامات - براند أحمدكو (Ahmedco) للأزياء والملابس الكاجوال">
+  <title>تفاصيل الموديل | أحمدكو - Ahmedco Fashion</title>
+
+  <!-- Favicon وشعار أحمدكو -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+
+  <!-- الخطوط والأيقونات -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+
+  <!-- مكتبات Firebase لقراءة بيانات ملابس أحمدكو -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    /* --------------------------------------------------------------------------
+       تنسيقات صفحة المنتج المخصصة للأزياء والمقاسات
+       -------------------------------------------------------------------------- */
+    .product-page-canvas {
+      padding: 24px 0 60px;
+    }
+
+    .dream-breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .dream-breadcrumbs a {
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .dream-breadcrumbs a:hover {
+      color: var(--fashion-accent, #2563eb);
+    }
+
+    .dream-breadcrumbs span.current-page {
+      color: var(--text-main);
+      font-weight: 800;
+    }
+
+    /* تقسيم الكارت الرئيسي */
+    .product-single-card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 32px;
+      display: grid;
+      grid-template-columns: 480px 1fr;
+      gap: 40px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 35px;
+    }
+
+    /* معرض الصور الطولي للملابس */
+    .product-gallery-box {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .single-discount-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background-color: var(--fashion-danger, #ef4444);
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      z-index: 3;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+    }
+
+    .main-image-viewport {
+      width: 100%;
+      height: 520px; /* طول متسع لكامل هيئة الموديل والملابس */
+      background-color: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .main-image-viewport img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      object-position: top center !important;
+      transition: transform 0.4s ease;
+    }
+
+    .main-image-viewport:hover img {
+      transform: scale(1.05);
+    }
+
+    .gallery-nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 42px;
+      height: 42px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 50%;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: all 0.2s ease;
+    }
+
+    .gallery-nav-arrow:hover {
+      background-color: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      border-color: var(--fashion-primary, #0f172a);
+    }
+
+    .gallery-nav-arrow.prev-btn { right: 12px; }
+    .gallery-nav-arrow.next-btn { left: 12px; }
+
+    .gallery-dots-strip {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .gallery-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #cbd5e1;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .gallery-dot.active {
+      background-color: var(--fashion-primary, #0f172a);
+      transform: scale(1.25);
+    }
+
+    body.dark-mode .gallery-dot.active {
+      background-color: #38bdf8;
+    }
+
+    /* بيانات الموديل */
+    .product-overview-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .overview-brand-tag {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--fashion-accent, #2563eb);
+      margin-bottom: 6px;
+      display: inline-block;
+      letter-spacing: 0.5px;
+    }
+
+    .overview-title {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+
+    .overview-stars-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: var(--fashion-gold, #f59e0b);
+      margin-bottom: 18px;
+    }
+
+    .overview-stars-strip span {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .overview-pricing-panel {
+      background-color: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 16px 22px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+    }
+
+    .overview-price-red {
+      font-size: 2.1rem;
+      font-weight: 900;
+      color: var(--fashion-danger, #ef4444);
+    }
+
+    .overview-price-old {
+      font-size: 1.15rem;
+      color: var(--text-subtle);
+      text-decoration: line-through;
+    }
+
+    .overview-stock-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+    }
+
+    .overview-stock-pill .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+
+    /* صناديق اختيار المقاس واللون المخصصة للملابس */
+    .variant-selection-group {
+      margin-bottom: 20px;
+      background-color: var(--bg-elevated);
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+    }
+
+    .variant-panel-header {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .size-guide-btn {
+      color: var(--fashion-accent, #2563eb);
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: underline;
+    }
+
+    .options-row-pills {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* أزرار المقاسات */
+    .size-pill-badge {
+      min-width: 46px;
+      height: 38px;
+      padding: 0 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      background: var(--bg-surface);
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .size-pill-badge:hover {
+      border-color: var(--fashion-primary, #0f172a);
+    }
+
+    .size-pill-badge.active {
+      border-color: var(--fashion-primary, #0f172a);
+      background-color: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
+    }
+
+    body.dark-mode .size-pill-badge.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+    }
+
+    /* أزرار الألوان */
+    .color-swatch-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-pill);
+      background: var(--bg-surface);
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-main);
+      transition: all 0.2s ease;
+    }
+
+    .color-circle-preview {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15);
+      display: inline-block;
+    }
+
+    .color-swatch-badge.active {
+      border-color: var(--fashion-accent, #2563eb);
+      background-color: rgba(37, 99, 235, 0.08);
+      color: var(--fashion-accent, #2563eb);
+      font-weight: 800;
+    }
+
+    /* أزرار الشراء والكمية */
+    .purchase-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .detail-stepper-box {
+      display: inline-flex;
+      align-items: center;
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      background-color: var(--bg-surface);
+      height: 48px;
+    }
+
+    .detail-step-btn {
+      width: 40px;
+      height: 100%;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .detail-step-btn:hover {
+      background-color: var(--bg-elevated);
+      color: var(--text-main);
+    }
+
+    .detail-step-input {
+      width: 45px;
+      text-align: center;
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--text-main);
+      border: none;
+      background: transparent;
+      outline: none;
+    }
+
+    .btn-detail-add-cart {
+      flex: 1;
+      height: 48px;
+      background-color: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      border-radius: var(--radius-xs);
+      font-size: 1rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25);
+      transition: var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .btn-detail-add-cart:hover {
+      background-color: var(--fashion-accent, #2563eb);
+      transform: translateY(-2px);
+    }
+
+    .btn-detail-buy-now {
+      height: 48px;
+      padding: 0 30px;
+      background-color: #ffffff;
+      color: var(--fashion-primary, #0f172a);
+      border: 2px solid var(--fashion-primary, #0f172a);
+      border-radius: var(--radius-xs);
+      font-size: 1rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .btn-detail-buy-now:hover {
+      background-color: var(--fashion-primary, #0f172a);
+      color: #ffffff;
+      transform: translateY(-2px);
+    }
+
+    body.dark-mode .btn-detail-buy-now {
+      background-color: transparent;
+      color: #38bdf8;
+      border-color: #38bdf8;
+    }
+
+    body.dark-mode .btn-detail-buy-now:hover {
+      background-color: #38bdf8;
+      color: #0f172a;
+    }
+
+    /* مزايا براند أحمدكو */
+    .shop-perks-list {
+      border-top: 1px solid var(--border-light);
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .shop-perk-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .shop-perk-item i {
+      font-size: 1.1rem;
+      color: var(--fashion-accent, #2563eb);
+      width: 24px;
+      text-align: center;
+    }
+
+    /* تفاصيل المواصفات والخامة */
+    .product-specs-section {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 30px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 40px;
+    }
+
+    .specs-header-tab {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-main);
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--fashion-primary, #0f172a);
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    body.dark-mode .specs-header-tab {
+      border-color: #38bdf8;
+    }
+
+    .specs-table-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .spec-table-row {
+      display: flex;
+      padding: 12px 16px;
+      border-radius: var(--radius-xs);
+      font-size: 0.9rem;
+    }
+
+    .spec-table-row:nth-child(odd) {
+      background-color: var(--bg-elevated);
+    }
+
+    .spec-table-label {
+      width: 200px;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .spec-table-value {
+      flex: 1;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* نافذة دليل المقاسات المنبثقة */
+    .size-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100000;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    .size-modal-backdrop.active { display: flex; }
+
+    .size-modal-card {
+      position: relative;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 600px;
+      padding: 24px;
+      box-shadow: var(--shadow-hover);
+      border: 1px solid var(--border-color);
+    }
+
+    .size-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.88rem;
+      text-align: center;
+    }
+
+    .size-table th {
+      background-color: var(--bg-elevated);
+      padding: 10px;
+      font-weight: 800;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .size-table td {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    @media (max-width: 992px) {
+      .product-single-card {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 25px;
+      }
+      .main-image-viewport { height: 380px; }
+      .overview-title { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 768px) {
+      .dream-header .fashion-search { display: none !important; }
+      .product-page-canvas { padding: 12px 0 40px; }
+      .main-image-viewport { height: 300px; }
+      .overview-title { font-size: 1.15rem; }
+      .overview-price-red { font-size: 1.6rem; }
+      .purchase-actions-row { gap: 10px; }
+      .detail-stepper-box, .btn-detail-add-cart, .btn-detail-buy-now { height: 44px; }
+      .btn-detail-add-cart, .btn-detail-buy-now { font-size: 0.88rem; }
+      .btn-detail-buy-now { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body class="fashion-theme">
+
+  <!-- 1. شريط العروض العلوي -->
+  <div class="fashion-ticker">
+    <div class="ticker-track">
+      <span>🔥 كولكشن جديد من أحمدكو: خامات قطن 100% وموديلات أوفر سايز راقية</span>
+      <span>•</span>
+      <span>🚚 حق المعاينة وقياس الملابس أمام المندوب متاح بالكامل قبل الدفع</span>
+      <span>•</span>
+      <span>⚡ شحن سريع لجميع محافظات مصر وتغليف فاخر يليق بطلبك</span>
+      <span>•</span>
+      <span>💵 الدفع عند الاستلام كاش بكل ثقة وأمان</span>
+    </div>
+  </div>
+
+  <!-- 2. رأس المتجر (Header) -->
+  <header class="fashion-header">
+    <div class="container header-inner">
+      
+      <!-- شعار براند أحمدكو -->
+      <a href="index.html" class="brand-fashion">
+        <img src="logo.png" alt="أحمدكو Ahmedco Store" class="main-store-logo">
+      </a>
+
+      <!-- حقل البحث السريع -->
+      <form class="fashion-search" action="index.html" method="GET">
+        <input type="text" name="q" placeholder="ابحث عن هودي، تيشرت، بنطلون كارجو..." autocomplete="off">
+        <button type="submit" class="search-submit-btn" aria-label="بحث">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+      </form>
+
+      <div class="dream-header-tools">
+        <!-- مفتاح الوضع الليلي -->
+        <div class="dark-mode-toggle-wrap" title="تبديل الوضع الليلي / الفاتح">
+          <label class="switch-ui" for="dark-mode-checkbox">
+            <input type="checkbox" id="dark-mode-checkbox">
+            <span class="slider-switch round">
+              <i class="fa-solid fa-sun icon-sun"></i>
+              <i class="fa-solid fa-moon icon-moon"></i>
+            </span>
+          </label>
+        </div>
+
+        <div class="header-v-divider"></div>
+
+        <!-- زر حقيبة التسوق -->
+        <a href="cart.html" class="dream-cart-btn fashion-cart" title="حقيبة التسوق">
+          <div class="cart-icon-bubble">
+            <i class="fa-solid fa-bag-shopping"></i>
+            <span class="cart-qty-pill" id="cart-counter">0</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. مسار التنقل وتفاصيل الموديل -->
+  <main class="product-page-canvas">
+    <div class="container">
+      
+      <!-- شريط المسار (Breadcrumbs) -->
+      <nav class="dream-breadcrumbs">
+        <a href="index.html">الرئيسية</a>
+        <span class="separator">/</span>
+        <a href="index.html" id="crumb-cat-name">الملابس والكولكشن</a>
+        <span class="separator">/</span>
+        <span class="current-page" id="crumb-prod-title">جاري تحميل الموديل...</span>
+      </nav>
+
+      <!-- بطاقة الموديل الرئيسية -->
+      <section class="product-single-card">
+        
+        <!-- معرض الصور الطولي المجهز بالأسهم والتبديل التلقائي -->
+        <div class="product-gallery-box" id="product-slider-wrapper">
+          <span class="single-discount-badge" id="detail-discount-tag">وفر 0.00 ج.م</span>
+          
+          <button class="gallery-nav-arrow prev-btn" id="slider-prev-btn" title="الصورة السابقة">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+
+          <div class="main-image-viewport">
+            <img id="detail-img" src="" alt="صورة الموديل" style="transition: opacity 0.25s ease;">
+          </div>
+
+          <button class="gallery-nav-arrow next-btn" id="slider-next-btn" title="الصورة التالية">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <div class="gallery-dots-strip" id="gallery-dots-box"></div>
+        </div>
+
+        <!-- تفاصيل الموديل والمقاسات والشراء -->
+        <div class="product-overview-box">
+          <span class="overview-brand-tag" id="detail-brand">Ahmedco Originals</span>
+          <h1 class="overview-title" id="detail-title">جاري تحميل بيانات القطعة...</h1>
+
+          <div class="overview-stars-strip" style="flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="detail-stars-box"></span>
+              <span id="detail-reviews-num">(0 تقييم مشترين)</span>
+            </div>
+            <!-- تقييم الزائر التفاعلي -->
+            <div style="display: flex; align-items: center; gap: 6px; border-right: 2px solid var(--border-color); padding-right: 12px;">
+              <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-main);">تقييمك للخامة:</span>
+              <div class="interactive-stars-wrap" id="user-star-picker">
+                <span class="star-item" data-val="5">★</span>
+                <span class="star-item" data-val="4">★</span>
+                <span class="star-item" data-val="3">★</span>
+                <span class="star-item" data-val="2">★</span>
+                <span class="star-item" data-val="1">★</span>
+              </div>
+              <small id="rating-feedback" style="color: #22c55e; font-weight: 800; font-size: 0.75rem; display: none;">شكراً لتقييمك!</small>
+            </div>
+          </div>
+
+          <!-- منطقة السعر -->
+          <div class="overview-pricing-panel">
+            <span class="overview-price-red" id="detail-price">0.00 ج.م</span>
+            <span class="overview-price-old" id="detail-old-price">0.00 ج.م</span>
+          </div>
+
+          <div class="overview-stock-pill">
+            <span class="dot"></span>
+            <span>جاهز للشحن الفوري • متاح القياس والمعاينة قبل الدفع</span>
+          </div>
+
+          <!-- 1. محدد المقاسات (Sizes) -->
+          <div class="variant-selection-group">
+            <div class="variant-panel-header">
+              <span>المقاس المختار: <strong id="selected-size-name" style="color:var(--fashion-accent, #2563eb);">L</strong></span>
+              <span class="size-guide-btn" onclick="openSizeGuide()"><i class="fa-solid fa-ruler-combined"></i> جدول المقاسات والوزن</span>
+            </div>
+            <div class="options-row-pills" id="size-options-container">
+              <!-- يتم توليد المقاسات ديناميكياً -->
+            </div>
+          </div>
+
+          <!-- 2. محدد الألوان المتاحة (Colors) -->
+          <div class="variant-selection-group">
+            <div class="variant-panel-header">
+              <span>اللون المختار: <strong id="selected-color-name" style="color:var(--fashion-accent, #2563eb);">أسود</strong></span>
+            </div>
+            <div class="options-row-pills" id="color-options-container">
+              <!-- يتم توليد الألوان ديناميكياً -->
+            </div>
+          </div>
+
+          <!-- العداد وأزرار الإضافة لحقيبة الشراء -->
+          <div class="purchase-actions-row">
+            <div class="detail-stepper-box">
+              <button class="detail-step-btn" id="btn-qty-plus">+</button>
+              <input type="text" class="detail-step-input" id="detail-qty-val" value="1" readonly>
+              <button class="detail-step-btn" id="btn-qty-minus">-</button>
+            </div>
+
+            <button class="btn-detail-add-cart" id="btn-add-to-cart">
+              <i class="fa-solid fa-bag-shopping"></i> أضف للحقيبة
+            </button>
+
+            <button class="btn-detail-buy-now" id="btn-buy-now-direct">
+              <i class="fa-solid fa-bolt"></i> طلب فوري
+            </button>
+          </div>
+
+          <!-- كوبون الخصم الخاص بالقطعة -->
+          <div style="background: var(--bg-elevated); border: 1.5px dashed var(--border-color); border-radius: var(--radius-sm); padding: 12px 16px; margin-bottom: 22px;">
+            <label style="display:block; font-size:0.84rem; font-weight:800; color:var(--text-main); margin-bottom:6px;">
+              <i class="fa-solid fa-ticket" style="color:var(--fashion-accent, #2563eb);"></i> هل لديك كود خصم على هذه القطعة؟
+            </label>
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="prod-coupon-input" placeholder="اكتب كود الخصم (مثال: AHMED10)" style="flex:1; padding:8px 12px; border:1px solid var(--border-color); border-radius:4px; font-size:0.85rem; text-transform:uppercase; outline:none; background:var(--bg-surface); color:var(--text-main);">
+              <button type="button" id="btn-apply-prod-coupon" style="background:var(--fashion-primary, #0f172a); color:#fff; border:none; padding:0 18px; border-radius:4px; font-weight:800; font-size:0.85rem; cursor:pointer;" onclick="applyProductCoupon()">تطبيق</button>
+            </div>
+            <div id="prod-coupon-msg" style="font-size:0.82rem; font-weight:800; margin-top:6px; display:none;"></div>
+          </div>
+
+          <!-- ضمانات براند أحمدكو للعميل -->
+          <div class="shop-perks-list">
+            <div class="shop-perk-item">
+              <i class="fa-solid fa-shirt"></i>
+              <span>حق التجربة والقياس: قيس القطعة وافحص التقفيل والخامة أمام المندوب قبل دفع أي جنيه.</span>
+            </div>
+            <div class="shop-perk-item">
+              <i class="fa-solid fa-hand-holding-dollar"></i>
+              <span>الدفع عند الاستلام كاش بكل راحة وأمان.</span>
+            </div>
+            <div class="shop-perk-item">
+              <i class="fa-solid fa-arrow-rotate-left"></i>
+              <span>إمكانية الاستبدال الفوري للمقاس خلال 14 يوماً بكل سهولة.</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- جدول المواصفات الفنية وتفاصيل الخامة -->
+      <section class="product-specs-section">
+        <div class="specs-header-tab">مواصفات الخامة والتقفيل</div>
+        <div class="specs-table-grid" id="specs-table-body">
+          <!-- يتم ملؤها ديناميكياً -->
+        </div>
+      </section>
+
+      <!-- قطع مقترحة من نفس الكولكشن -->
+      <section class="related-products-section" style="margin-top: 40px; margin-bottom: 50px;">
+        <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--text-main); margin-bottom: 20px; border-right: 4px solid var(--fashion-accent, #2563eb); padding-right: 12px;">
+          قطع أخرى قد تعجبك
+        </h2>
+        <div class="dream-products-grid fashion-grid" id="related-products-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px;">
+          <!-- يتم ملؤها تلقائياً -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- نافذة دليل المقاسات المنبثقة (Size Guide Modal) -->
+  <div class="size-modal-backdrop" id="size-modal-overlay">
+    <div class="size-modal-card">
+      <button class="close-modal-btn" onclick="closeSizeGuide()"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:1.2rem; font-weight:900; color:var(--text-main); margin-bottom:6px;"><i class="fa-solid fa-ruler-combined"></i> دليل المقاسات التقريبي</h3>
+      <p style="font-size:0.82rem; color:var(--text-muted);">جميع المقاسات مضبوطة ومناسبة للأجسام القياسية (مع إمكانية المعاينة أمام المندوب)</p>
+      
+      <table class="size-table">
+        <thead>
+          <tr>
+            <th>المقاس</th>
+            <th>عرض الصدر (سم)</th>
+            <th>الطول (سم)</th>
+            <th>الوزن المناسب التقريبي</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>M</td><td>54 - 56</td><td>70</td><td>55 - 68 كجم</td></tr>
+          <tr><td>L</td><td>57 - 59</td><td>72</td><td>69 - 80 كجم</td></tr>
+          <tr><td>XL</td><td>60 - 62</td><td>74</td><td>81 - 92 كجم</td></tr>
+          <tr><td>2XL</td><td>63 - 66</td><td>76</td><td>93 - 105 كجم</td></tr>
+          <tr><td>3XL</td><td>67 - 70</td><td>78</td><td>106 - 120 كجم</td></tr>
+          <tr><td>Oversized Free</td><td>65 - 72</td><td>76</td><td>يناسب الجميع (ستايل واسع)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. تذييل المتجر الفخم (Footer) -->
+  <footer class="fashion-footer">
+    <div class="container">
+      <div class="footer-simple-center">
+        <div class="footer-simple-card">
+          <img src="logo.png" alt="أحمدكو">
+        </div>
+        <div class="footer-simple-brand-text">
+          <h3>براند أحمدكو للأزياء والملابس</h3>
+          <p>أقمشة قطن 100% • خياطة وتقفيل راقٍ • حق المعاينة وقياس الملابس قبل الدفع</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom-copyright">
+        <div class="container copyright-flex-dream">
+          <div class="footer-copy-right">
+            <span>© 2026 براند أحمدكو (Ahmedco Fashion). جميع الحقوق محفوظة.</span>
+          </div>
+
+          <div class="footer-social-mid">
+            <a href="#" target="_blank" title="تيك توك"><i class="fa-brands fa-tiktok"></i></a>
+            <a href="#" target="_blank" title="فيسبوك"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" target="_blank" title="انستجرام"><i class="fa-brands fa-instagram"></i></a>
+          </div>
+
+          <div class="footer-dev-left" dir="ltr">
+            <span class="dev-label-eng">Designed &amp; Developed by</span>
+            <a href="https://wa.me/201101579399" target="_blank" class="dev-eng-highlight" title="واتساب المطور">
+              ENG : Ahmed Mohamed
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 5. شريط التنقل السفلي للهواتف -->
+  <div class="mobile-bottom-nav">
+    <a href="index.html" class="mob-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>الرئيسية</span>
+    </a>
+    <a href="cart.html" class="mob-nav-item mob-cart-link active">
+      <div class="mob-cart-badge-wrap">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span class="mob-badge" id="mob-cart-counter">0</span>
+      </div>
+      <span>الحقيبة</span>
+    </a>
+    <a href="https://wa.me/201101579399" target="_blank" class="mob-nav-item" style="color: #25d366;">
+      <i class="fa-brands fa-whatsapp"></i>
+      <span>واتساب</span>
+    </a>
+  </div>
+
+  <!-- 6. زر المحادثة العائم المتناوب -->
+  <div class="alternating-chat-widget" id="alternating-chat-btn" title="تواصل معنا">
+    <a href="https://wa.me/201101579399" target="_blank" class="chat-circle-link whatsapp-mode" id="chat-link">
+      <i class="fa-brands fa-whatsapp chat-icon" id="chat-icon"></i>
+    </a>
+  </div>
+
+  <!-- شاشة الصيانة وإغلاق المتجر -->
+  <div class="store-closed-screen" id="store-closed-modal" style="display: none;">
+    <div class="closed-glass-box">
+      <img src="logo.png" alt="أحمدكو" style="height: 60px; margin: 0 auto; display:block;">
+      <h2>تجهيز الكولكشن الجديد وجرد المخزون</h2>
+      <p>نقوم حالياً بجرد القطع وتحديث المقاسات والألوان المتوفرة.<br>نعود إليكم في أبهى حلة خلال وقت قصير بإذن الله.</p>
+      <a href="https://wa.me/201101579399" target="_blank" class="btn-claim-offer-3d" style="margin: 0 auto; max-width: 280px; text-decoration:none; display:inline-flex;">
+        <i class="fa-brands fa-whatsapp" style="color:#22c55e;"></i> تواصل معنا عبر واتساب
+      </a>
+    </div>
+  </div>
+
+  <!-- المحرك البرمجي لصفحة الموديل لمتجر أحمدكو -->
+  <script>
+    'use strict';
+
+    // 1. إعدادات مشروع فايربيز الخاص بمتجر أحمدكو (ahmedco-brand)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbZhiHbPf97rFULB2mg_o4L74e9oateto",
+      authDomain: "ahmedco-brand.firebaseapp.com",
+      projectId: "ahmedco-brand",
+      storageBucket: "ahmedco-brand.firebasestorage.app",
+      messagingSenderId: "116297730401",
+      appId: "1:116297730401:web:d73eed3234c8da8c821d20",
+      measurementId: "G-EYFCWNCHF3"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let prodId = urlParams.get('id');
+
+    let currentProduct = null;
+    let chosenSize = "L";
+    let chosenColor = "أسود";
+    let chosenStock = 10;
+    let currentQty = 1;
+    let activeImages = [];
+    let currentImgIndex = 0;
+    let sliderInterval = null;
+
+    let productAppliedDiscountPercent = 0;
+    let productAppliedCouponCode = '';
+
+    // 2. جلب بيانات القطعة
+    function fetchLiveProductDetails() {
+      if (!prodId) {
+        db.collection('products').limit(1).get().then(snapshot => {
+          if (!snapshot.empty) {
+            prodId = snapshot.docs[0].id;
+            listenToProduct(prodId);
+          }
+        });
+        return;
+      }
+      listenToProduct(prodId);
+    }
+
+    function listenToProduct(id) {
+      db.collection('products').doc(id).onSnapshot((doc) => {
+        if (doc.exists) {
+          currentProduct = { id: doc.id, ...doc.data() };
+          renderCurrentProduct(currentProduct);
+        } else {
+          const localItems = JSON.parse(localStorage.getItem('ahmedco_store_inventory')) || [];
+          const found = localItems.find(p => String(p.id) === String(id));
+          if (found) {
+            currentProduct = found;
+            renderCurrentProduct(currentProduct);
+          } else {
+            document.getElementById('detail-title').textContent = "القطعة غير متاحة أو تم تحديث الكولكشن.";
+          }
+        }
+      }, (err) => {
+        console.error("خطأ قراءة بيانات القطعة:", err);
+      });
+    }
+
+    // 3. محرك اختيار المقاسات (Sizes)
+    function setupSizeSelection(prod) {
+      const sizeBox = document.getElementById('size-options-container');
+      const sizeLabel = document.getElementById('selected-size-name');
+      if (!sizeBox) return;
+
+      const defaultSizes = ['M', 'L', 'XL', '2XL'];
+      const availableSizes = (prod.sizes && Array.isArray(prod.sizes) && prod.sizes.length > 0)
+        ? prod.sizes
+        : defaultSizes;
+
+      chosenSize = availableSizes[0];
+      if (sizeLabel) sizeLabel.textContent = chosenSize;
+
+      sizeBox.innerHTML = availableSizes.map((s, i) => `
+        <div class="size-pill-badge ${i === 0 ? 'active' : ''}" onclick="selectSize('${s}', this)">
+          ${s}
+        </div>
+      `).join('');
+    }
+
+    window.selectSize = function(sizeVal, el) {
+      chosenSize = sizeVal;
+      document.getElementById('selected-size-name').textContent = sizeVal;
+      document.querySelectorAll('.size-pill-badge').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    };
+
+    // 4. محرك اختيار الألوان (Colors)
+    function setupColorSelection(prod) {
+      const colorsBox = document.getElementById('color-options-container');
+      const labelEl = document.getElementById('selected-color-name');
+      if (!colorsBox) return;
+
+      const hexMap = {
+        'أسود': '#0f172a',
+        'أبيض': '#ffffff',
+        'بيج': '#f5f5dc',
+        'رمادي': '#64748b',
+        'كحلي': '#1e3a8a',
+        'زيتي': '#3f6212',
+        'بني': '#78350f',
+        'أوف وايت': '#fafaf9'
+      };
+
+      let rawColors = ['أسود', 'أبيض', 'رمادي'];
+      if (prod.colors && Array.isArray(prod.colors) && prod.colors.length > 0) {
+        rawColors = prod.colors;
+      } else if (prod.colorVariants && Array.isArray(prod.colorVariants)) {
+        rawColors = prod.colorVariants.map(v => v.color || v.name);
+      }
+
+      chosenColor = rawColors[0];
+      if (labelEl) labelEl.textContent = chosenColor;
+
+      colorsBox.innerHTML = rawColors.map((c, i) => {
+        const hex = hexMap[c] || '#0f172a';
+        return `
+          <div class="color-swatch-badge ${i === 0 ? 'active' : ''}" onclick="selectColor('${c}', this)">
+            <span class="color-circle-preview" style="background-color: ${hex};"></span>
+            <span>${c}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.selectColor = function(colorName, el) {
+      chosenColor = colorName;
+      document.getElementById('selected-color-name').textContent = colorName;
+      document.querySelectorAll('.color-swatch-badge').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+    };
+
+    // 5. بناء واجهة وتفاصيل الموديل
+    function renderCurrentProduct(prod) {
+      document.title = `${prod.title} | براند أحمدكو`;
+
+      const crumbCat = document.getElementById('crumb-cat-name');
+      if (crumbCat) crumbCat.textContent = prod.category || 'ملابس كاجوال';
+
+      const crumbTitle = document.getElementById('crumb-prod-title');
+      if (crumbTitle) crumbTitle.textContent = prod.title;
+
+      const detailTitle = document.getElementById('detail-title');
+      if (detailTitle) detailTitle.textContent = prod.title;
+
+      const detailBrand = document.getElementById('detail-brand');
+      if (detailBrand) detailBrand.textContent = prod.brand || 'Ahmedco Originals';
+
+      const priceVal = Number(prod.price) || 0;
+      const oldPriceVal = Number(prod.oldPrice) || 0;
+
+      const priceEl = document.getElementById('detail-price');
+      if (priceEl) priceEl.textContent = `${priceVal.toFixed(2)} ج.م`;
+
+      const oldPriceEl = document.getElementById('detail-old-price');
+      if (oldPriceEl) {
+        if (oldPriceVal > priceVal) {
+          oldPriceEl.textContent = `${oldPriceVal.toFixed(2)} ج.م`;
+          oldPriceEl.style.display = 'inline';
+        } else {
+          oldPriceEl.style.display = 'none';
+        }
+      }
+
+      const discountTag = document.getElementById('detail-discount-tag');
+      if (discountTag) {
+        if (prod.discount && Number(prod.discount) > 0) {
+          discountTag.textContent = `وفر ${prod.discount} ج.م`;
+          discountTag.style.display = 'block';
+        } else if (oldPriceVal > priceVal) {
+          discountTag.textContent = `وفر ${(oldPriceVal - priceVal).toFixed(2)} ج.م`;
+          discountTag.style.display = 'block';
+        } else {
+          discountTag.style.display = 'none';
+        }
+      }
+
+      const starsBox = document.getElementById('detail-stars-box');
+      if (starsBox) {
+        let starsHtml = '';
+        const rate = Math.round(Number(prod.rating) || 5);
+        for (let i = 1; i <= 5; i++) {
+          starsHtml += (i <= rate)
+            ? '<i class="fa-solid fa-star"></i>'
+            : '<i class="fa-regular fa-star" style="color:#cbd5e1;"></i>';
+        }
+        starsBox.innerHTML = starsHtml;
+      }
+
+      const reviewsEl = document.getElementById('detail-reviews-num');
+      if (reviewsEl) reviewsEl.textContent = `(${prod.ratingCount || 0} تقييم مشترين)`;
+
+      renderSpecsTable(prod.specs);
+      renderRelatedItems(prod);
+      setupImageSlider(prod);
+      setupSizeSelection(prod);
+      setupColorSelection(prod);
+    }
+
+    // 6. معرض صور القطعة بالسلايدر
+    function setupImageSlider(prod) {
+      if (prod.images && Array.isArray(prod.images) && prod.images.length > 0) {
+        activeImages = prod.images.filter(Boolean);
+      } else if (prod.image) {
+        activeImages = [prod.image];
+      } else {
+        activeImages = ['logo.png'];
+      }
+
+      currentImgIndex = 0;
+      updateSliderUI();
+
+      const dotsBox = document.getElementById('gallery-dots-box');
+      if (dotsBox) {
+        dotsBox.innerHTML = activeImages.map((_, idx) => `
+          <span class="gallery-dot ${idx === 0 ? 'active' : ''}" onclick="goToSlide(${idx})"></span>
+        `).join('');
+      }
+
+      startAutoSlide();
+      const wrapper = document.getElementById('product-slider-wrapper');
+      wrapper?.addEventListener('mouseenter', stopAutoSlide);
+      wrapper?.addEventListener('mouseleave', startAutoSlide);
+    }
+
+    function updateSliderUI() {
+      const imgEl = document.getElementById('detail-img');
+      if (imgEl && activeImages[currentImgIndex]) {
+        imgEl.style.opacity = '0.3';
+        setTimeout(() => {
+          imgEl.src = activeImages[currentImgIndex];
+          imgEl.style.opacity = '1';
+        }, 120);
+      }
+      document.querySelectorAll('.gallery-dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx === currentImgIndex);
+      });
+    }
+
+    function nextSlide() {
+      currentImgIndex = (currentImgIndex + 1) % activeImages.length;
+      updateSliderUI();
+    }
+
+    function prevSlide() {
+      currentImgIndex = (currentImgIndex - 1 + activeImages.length) % activeImages.length;
+      updateSliderUI();
+    }
+
+    window.goToSlide = function(index) {
+      currentImgIndex = index;
+      updateSliderUI();
+      restartAutoSlide();
+    };
+
+    function startAutoSlide() {
+      stopAutoSlide();
+      if (activeImages.length > 1) {
+        sliderInterval = setInterval(nextSlide, 2500);
+      }
+    }
+
+    function stopAutoSlide() {
+      if (sliderInterval) clearInterval(sliderInterval);
+    }
+
+    function restartAutoSlide() {
+      stopAutoSlide();
+      startAutoSlide();
+    }
+
+    document.getElementById('slider-next-btn')?.addEventListener('click', () => { nextSlide(); restartAutoSlide(); });
+    document.getElementById('slider-prev-btn')?.addEventListener('click', () => { prevSlide(); restartAutoSlide(); });
+
+    // 7. المواصفات وتفاصيل التقفيل
+    function renderSpecsTable(specs) {
+      const specsContainer = document.getElementById('specs-table-body');
+      if (!specsContainer) return;
+
+      if (typeof specs === 'string' && specs.trim()) {
+        specsContainer.innerHTML = `
+          <div class="spec-table-row" style="display:block;">
+            <span class="spec-table-value" style="white-space:pre-line; line-height:1.9;">${specs.trim()}</span>
+          </div>
+        `;
+      } else {
+        specsContainer.innerHTML = `
+          <div class="spec-table-row">
+            <span class="spec-table-label">نوع النسيج</span>
+            <span class="spec-table-value">قطن مصري 100% معالج ضد الانكماش والوبرة</span>
+          </div>
+          <div class="spec-table-row">
+            <span class="spec-table-label">القصة والستايل</span>
+            <span class="spec-table-value">Oversized / Regular Fit مريحة تناسب الاستخدام اليومي</span>
+          </div>
+          <div class="spec-table-row">
+            <span class="spec-table-label">تعليمات الغسيل</span>
+            <span class="spec-table-value">غسيل في الغسالة بماء بارد (30 درجة) دون مبيضات للحفاظ على الألوان</span>
+          </div>
+        `;
+      }
+    }
+
+    // 8. قطع ذات صلة
+    async function renderRelatedItems(activeItem) {
+      const container = document.getElementById('related-products-container');
+      if (!container) return;
+
+      try {
+        const snap = await db.collection('products').where('category', '==', activeItem.category || 'hoodies').limit(5).get();
+        const related = [];
+        snap.forEach(d => {
+          if (d.id !== activeItem.id) related.push({ id: d.id, ...d.data() });
+        });
+
+        if (related.length === 0) {
+          container.innerHTML = `<p style="color:var(--text-muted); font-size:0.88rem; grid-column: 1 / -1;">لا توجد قطع أخرى في هذا الكولكشن حالياً.</p>`;
+          return;
+        }
+
+        container.innerHTML = related.slice(0, 4).map(item => `
+          <article class="fashion-card" onclick="window.location.href='product.html?id=${item.id}'" style="cursor: pointer;">
+            <div class="media-square-box" style="height: 220px;">
+              <img src="${(item.images && item.images[0]) || item.image || 'logo.png'}" alt="${item.title}">
+            </div>
+            <div class="card-details-pane" style="text-align: right; margin-top: 10px;">
+              <span class="brand-label-text">${item.brand || 'أحمدكو'}</span>
+              <h4 style="font-size: 0.88rem; font-weight: 800; color: var(--text-main); height: 38px; overflow: hidden; margin: 4px 0 6px;">${item.title}</h4>
+              <div class="price-block-dream">
+                <span class="price-val-red">${Number(item.price).toFixed(2)} ج.م</span>
+              </div>
+              <button class="btn-choose-option-green" style="width: 100%; height: 36px; margin-top: 6px;">معاينة القطعة</button>
+            </div>
+          </article>
+        `).join('');
+      } catch (e) {}
+    }
+
+    // 9. العداد وحقيبة التسوق
+    const qtyInput = document.getElementById('detail-qty-val');
+    document.getElementById('btn-qty-plus')?.addEventListener('click', () => {
+      currentQty++;
+      if (qtyInput) qtyInput.value = currentQty;
+    });
+
+    document.getElementById('btn-qty-minus')?.addEventListener('click', () => {
+      if (currentQty > 1) {
+        currentQty--;
+        if (qtyInput) qtyInput.value = currentQty;
+      }
+    });
+
+    function syncCartCounter() {
+      const cart = JSON.parse(localStorage.getItem('ahmedco_cart')) || [];
+      const count = cart.reduce((acc, i) => acc + (Number(i.quantity) || 1), 0);
+      const cartEl = document.getElementById('cart-counter');
+      const mobCartEl = document.getElementById('mob-cart-counter');
+      if (cartEl) cartEl.textContent = count;
+      if (mobCartEl) mobCartEl.textContent = count;
+    }
+
+    window.applyProductCoupon = function() {
+      const input = document.getElementById('prod-coupon-input');
+      const msg = document.getElementById('prod-coupon-msg');
+      const code = input ? input.value.trim().toUpperCase() : '';
+      const coupons = JSON.parse(localStorage.getItem('ahmedco_coupons_db')) || {
+        'AHMED10': 10,
+        'AHMED50': 50
+      };
+
+      if (!code) return;
+      const raw = coupons[code];
+      if (!raw) {
+        msg.style.display = 'block';
+        msg.style.color = 'var(--fashion-danger, #ef4444)';
+        msg.textContent = '❌ كود الخصم غير صحيح أو غير مفعل!';
+        return;
+      }
+
+      productAppliedDiscountPercent = typeof raw === 'object' ? raw.discount : raw;
+      productAppliedCouponCode = code;
+
+      const basePrice = Number(currentProduct.price);
+      const discountedPrice = basePrice - (basePrice * (productAppliedDiscountPercent / 100));
+
+      msg.style.display = 'block';
+      msg.style.color = '#15803d';
+      msg.innerHTML = `✅ تم تفعيل الكود بنجاح وخصم ${productAppliedDiscountPercent}%! السعر الجديد: <strong>${discountedPrice.toFixed(2)} ج.م</strong>`;
+
+      const priceEl = document.getElementById('detail-price');
+      const oldPriceEl = document.getElementById('detail-old-price');
+      if (priceEl) priceEl.textContent = `${discountedPrice.toFixed(2)} ج.م`;
+      if (oldPriceEl) {
+        oldPriceEl.textContent = `${basePrice.toFixed(2)} ج.م`;
+        oldPriceEl.style.display = 'inline';
+      }
+    };
+
+    function addProductToCart(quantity) {
+      if (currentProduct.inStock === false) {
+        alert("عذراً، هذه القطعة نفذت كميتها مؤقتاً!");
+        return;
+      }
+
+      let cart = JSON.parse(localStorage.getItem('ahmedco_cart')) || [];
+      const cartItemId = `${currentProduct.id}-${chosenSize}-${chosenColor}`;
+      const existing = cart.find(i => String(i.cartId || i.id) === String(cartItemId));
+
+      if (existing) {
+        existing.quantity = (Number(existing.quantity) || 1) + quantity;
+      } else {
+        cart.push({
+          id: currentProduct.id,
+          cartId: cartItemId,
+          name: `${currentProduct.title} (مقاس: ${chosenSize} | لون: ${chosenColor})`,
+          price: productAppliedDiscountPercent > 0 
+            ? Number(currentProduct.price) * (1 - (productAppliedDiscountPercent / 100))
+            : Number(currentProduct.price),
+          image: (currentProduct.images && currentProduct.images[0]) || currentProduct.image || 'logo.png',
+          size: chosenSize,
+          color: chosenColor,
+          quantity: quantity,
+          couponCode: productAppliedCouponCode || ''
+        });
+      }
+
+      localStorage.setItem('ahmedco_cart', JSON.stringify(cart));
+      syncCartCounter();
+      alert(`✅ تمت إضافة (${quantity}) قطعة بمقاس [${chosenSize}] ولون [${chosenColor}] للحقيبة بنجاح!`);
+    }
+
+    document.getElementById('btn-add-to-cart')?.addEventListener('click', () => {
+      addProductToCart(currentQty);
+    });
+
+    document.getElementById('btn-buy-now-direct')?.addEventListener('click', () => {
+      addProductToCart(currentQty);
+      window.location.href = 'checkout.html';
+    });
+
+    // دليل المقاسات
+    window.openSizeGuide = function() {
+      document.getElementById('size-modal-overlay')?.classList.add('active');
+    };
+
+    window.closeSizeGuide = function() {
+      document.getElementById('size-modal-overlay')?.classList.remove('active');
+    };
+
+    // التقييم التفاعلي وحفظه في Firebase
+    let hasRatedThisSession = false;
+    async function submitProductRating(newRating) {
+      if (!currentProduct || hasRatedThisSession) return;
+      hasRatedThisSession = true;
+
+      try {
+        const prodRef = db.collection('products').doc(String(currentProduct.id));
+        await db.runTransaction(async (t) => {
+          const doc = await t.get(prodRef);
+          if (!doc.exists) return;
+          const data = doc.data();
+          const oldCount = Number(data.ratingCount) || 0;
+          const oldAvg = Number(data.rating) || 0;
+          const newCount = oldCount + 1;
+          const newAvg = ((oldAvg * oldCount) + newRating) / newCount;
+          t.update(prodRef, { rating: newAvg, ratingCount: newCount });
+        });
+      } catch (e) {
+        console.warn('تعذر حفظ التقييم:', e.message);
+      }
+    }
+
+    function initInteractiveRatingOnProduct() {
+      const stars = document.querySelectorAll('#user-star-picker .star-item');
+      const feedback = document.getElementById('rating-feedback');
+      stars.forEach(star => {
+        star.addEventListener('click', () => {
+          if (hasRatedThisSession) return;
+          const val = Number(star.getAttribute('data-val'));
+          stars.forEach(s => s.classList.remove('active'));
+          star.classList.add('active');
+          if (feedback) {
+            feedback.style.display = 'inline';
+            feedback.textContent = 'شكراً لتقييمك! تم تسجيل رأيك ✅';
+          }
+          submitProductRating(val);
+        });
+      });
+    }
+
+    // دارك مود وزر الواتساب
+    const darkCheckbox = document.getElementById('dark-mode-checkbox');
+    if (localStorage.getItem('ahmedco_dark_mode') === 'enabled') {
+      document.body.classList.add('dark-mode');
+      if (darkCheckbox) darkCheckbox.checked = true;
+    }
+    darkCheckbox?.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'enabled');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('ahmedco_dark_mode', 'disabled');
+      }
+    });
+
+    const chatLink = document.getElementById('chat-link');
+    const chatIcon = document.getElementById('chat-icon');
+    let isWhatsApp = true;
+    setInterval(() => {
+      isWhatsApp = !isWhatsApp;
+      if (!chatIcon || !chatLink) return;
+      chatIcon.classList.add('rotate-anim');
+      setTimeout(() => {
+        if (isWhatsApp) {
+          chatLink.className = 'chat-circle-link whatsapp-mode';
+          chatLink.href = 'https://wa.me/201101579399';
+          chatIcon.className = 'fa-brands fa-whatsapp chat-icon';
+        } else {
+          chatLink.className = 'chat-circle-link messenger-mode';
+          chatLink.href = 'https://m.me/ahmedcostore';
+          chatIcon.className = 'fa-brands fa-facebook-messenger chat-icon';
+        }
+        chatIcon.classList.remove('rotate-anim');
+      }, 250);
+    }, 5000);
+
+    // حالة إغلاق المتجر
+    function applyStoreClosedState(isClosed) {
+      const modal = document.getElementById('store-closed-modal');
+      if (!modal) return;
+      if (isClosed) {
+        modal.style.setProperty('display', 'flex', 'important');
+        document.body.style.overflow = 'hidden';
+      } else {
+        modal.style.setProperty('display', 'none', 'important');
+        document.body.style.overflow = '';
+      }
+    }
+    applyStoreClosedState(localStorage.getItem('ahmedco_store_closed') === 'true');
+    db.collection('settings').doc('status').onSnapshot(doc => {
+      if (doc.exists) {
+        const closed = doc.data().isClosed === true;
+        localStorage.setItem('ahmedco_store_closed', closed ? 'true' : 'false');
+        applyStoreClosedState(closed);
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchLiveProductDetails();
+      syncCartCounter();
+      initInteractiveRatingOnProduct();
+    });
+  </script>
+</body>
+</html>
